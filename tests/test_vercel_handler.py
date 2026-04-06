@@ -1,8 +1,9 @@
 import json
 import unittest
+from io import BytesIO
 from unittest.mock import patch
 
-import api.cron as cron
+import api.index as cron
 from src.config.settings import APISettings, EmailSettings, RuntimeSettings, Settings
 
 
@@ -38,8 +39,27 @@ def build_settings() -> Settings:
 
 
 class VercelHandlerTests(unittest.TestCase):
-    @patch("api.cron.run_daily_job")
-    @patch("api.cron.load_settings")
+    def build_handler(self, auth_header: str):
+        captured = {"status": None, "headers": []}
+
+        class TestHandler(cron.handler):
+            def __init__(self):
+                self.headers = {"Authorization": auth_header}
+                self.wfile = BytesIO()
+
+            def send_response(self, code, message=None):
+                captured["status"] = code
+
+            def send_header(self, key, value):
+                captured["headers"].append((key, value))
+
+            def end_headers(self):
+                return None
+
+        return TestHandler(), captured
+
+    @patch("api.index.run_daily_job")
+    @patch("api.index.load_settings")
     def test_cron_handler_returns_summary_when_authorized(
         self,
         mock_load_settings,
@@ -47,28 +67,20 @@ class VercelHandlerTests(unittest.TestCase):
     ):
         mock_load_settings.return_value = build_settings()
         mock_run_daily_job.return_value = {"trigger": "vercel-cron", "ok": True}
-        captured = {}
+        handler, captured = self.build_handler("Bearer secret-token")
+        handler.do_GET()
+        payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
 
-        response_iterable = cron.app(
-            {"REQUEST_METHOD": "GET", "HTTP_AUTHORIZATION": "Bearer secret-token"},
-            lambda status, headers: captured.update({"status": status, "headers": headers}),
-        )
-        payload = json.loads(b"".join(response_iterable).decode("utf-8"))
-
-        self.assertEqual(captured["status"], "200 OK")
+        self.assertEqual(captured["status"], 200)
         self.assertTrue(payload["success"])
         self.assertEqual(payload["summary"]["trigger"], "vercel-cron")
 
-    @patch("api.cron.load_settings")
+    @patch("api.index.load_settings")
     def test_cron_handler_rejects_invalid_secret(self, mock_load_settings):
         mock_load_settings.return_value = build_settings()
-        captured = {}
+        handler, captured = self.build_handler("Bearer wrong-token")
+        handler.do_GET()
+        payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
 
-        response_iterable = cron.app(
-            {"REQUEST_METHOD": "GET", "HTTP_AUTHORIZATION": "Bearer wrong-token"},
-            lambda status, headers: captured.update({"status": status, "headers": headers}),
-        )
-        payload = json.loads(b"".join(response_iterable).decode("utf-8"))
-
-        self.assertEqual(captured["status"], "401 ERROR")
+        self.assertEqual(captured["status"], 401)
         self.assertFalse(payload["success"])
