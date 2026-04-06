@@ -1,0 +1,6 @@
+# Project-local Codex overrides for NewsCollector_Versel
+
+[mcp_servers."shrimp-task-manager".env]
+DATA_DIR = "C:\\Codex\\NewsCollector_Versel\\.shrimp-data"
+TEMPLATES_USE = "en"
+ENABLE_GUI = "false"

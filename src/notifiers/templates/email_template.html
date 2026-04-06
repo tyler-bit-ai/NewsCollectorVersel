@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 16px;
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        h1 {
+            color: #1d4ed8;
+            margin: 0 0 8px 0;
+            font-size: 26px;
+        }
+        h2 {
+            color: #111827;
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        .section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .article {
+            margin-bottom: 10px;
+            padding: 12px;
+            border-left: 4px solid #2563eb;
+            background-color: #f8fafc;
+            border-radius: 6px;
+        }
+        .source {
+            color: #4b5563;
+            font-size: 12px;
+        }
+        .title {
+            font-weight: bold;
+            color: #111827;
+            margin: 4px 0;
+        }
+        .summary {
+            color: #374151;
+            font-size: 14px;
+        }
+        .link {
+            color: #1d4ed8;
+            text-decoration: none;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            margin: 8px 0 0 0;
+            padding-left: 18px;
+        }
+        li {
+            margin: 4px 0;
+        }
+        .date {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 0 0 6px 0;
+        }
+        .subtle {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 0;
+        }
+        .count {
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .brief {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 14px;
+        }
+        .more-list {
+            margin-top: 8px;
+            padding: 10px 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SKT 로밍팀 일일 뉴스 리포트</h1>
+        <p class="date"><strong>{{DATE}}</strong></p>
+        <p class="subtle">메일 가독성을 위해 카테고리별 핵심 {{EMAIL_TOP_N}}건 + 기타 링크로 요약했습니다.</p>
+
+        <div class="brief">
+            <h2>오늘의 5줄 요약</h2>
+            <ul>{{TODAY_BRIEF}}</ul>
+        </div>
+
+        {{EXTERNAL_ALERTS_SECTION}}
+
+        <div class="section">
+            <h2>📊 전략 인사이트</h2>
+            <p>{{STRATEGIC_INSIGHT}}</p>
+        </div>
+
+        <div class="section">
+            <h2>🔍 주요 발견</h2>
+            <ul>{{KEY_FINDINGS}}</ul>
+        </div>
+
+        <div class="section">
+            <h2>💡 행동 권고</h2>
+            <ul>{{RECOMMENDATIONS}}</ul>
+        </div>
+
+        {{CATEGORY_SECTIONS}}
+    </div>
+</body>
+</html>

@@ -1,0 +1,1 @@
+"""NewsCollector Vercel source package."""
