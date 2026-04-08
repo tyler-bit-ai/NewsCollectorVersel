@@ -1,6 +1,5 @@
 import json
 import unittest
-from io import BytesIO
 from unittest.mock import patch
 
 import api.index as cron
@@ -40,23 +39,9 @@ def build_settings() -> Settings:
 
 class VercelHandlerTests(unittest.TestCase):
     def build_handler(self, auth_header: str):
-        captured = {"status": None, "headers": []}
-
-        class TestHandler(cron.handler):
-            def __init__(self):
-                self.headers = {"Authorization": auth_header}
-                self.wfile = BytesIO()
-
-            def send_response(self, code, message=None):
-                captured["status"] = code
-
-            def send_header(self, key, value):
-                captured["headers"].append((key, value))
-
-            def end_headers(self):
-                return None
-
-        return TestHandler(), captured
+        client = cron.app.test_client()
+        response = client.get("/api/cron", headers={"Authorization": auth_header})
+        return response
 
     @patch("api.index.run_daily_job")
     @patch("api.index.load_settings")
@@ -67,20 +52,18 @@ class VercelHandlerTests(unittest.TestCase):
     ):
         mock_load_settings.return_value = build_settings()
         mock_run_daily_job.return_value = {"trigger": "vercel-cron", "ok": True}
-        handler, captured = self.build_handler("Bearer secret-token")
-        handler.do_GET()
-        payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        response = self.build_handler("Bearer secret-token")
+        payload = json.loads(response.get_data(as_text=True))
 
-        self.assertEqual(captured["status"], 200)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(payload["success"])
         self.assertEqual(payload["summary"]["trigger"], "vercel-cron")
 
     @patch("api.index.load_settings")
     def test_cron_handler_rejects_invalid_secret(self, mock_load_settings):
         mock_load_settings.return_value = build_settings()
-        handler, captured = self.build_handler("Bearer wrong-token")
-        handler.do_GET()
-        payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        response = self.build_handler("Bearer wrong-token")
+        payload = json.loads(response.get_data(as_text=True))
 
-        self.assertEqual(captured["status"], 401)
+        self.assertEqual(response.status_code, 401)
         self.assertFalse(payload["success"])
