@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 24px 14px;
+            background: #eef1f4;
+            color: #191c1d;
+            font-family: "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+        }
+        .wrapper {
+            width: 100%;
+            background: #eef1f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #f7f8fa 0%, #eef1f4 100%);
+            border-radius: 26px;
+            overflow: hidden;
+        }
+        .topbar {
+            padding: 18px 30px;
+            background: #ffffff;
+            border-bottom: 1px solid #f0d7e4;
+        }
+        .brand {
+            margin: 0;
+            color: #b90064;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .brand-sub {
+            margin: 4px 0 0;
+            color: #7a8795;
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .hero {
+            padding: 30px 30px 24px;
+            background: linear-gradient(135deg, #fbf4f8, #f6f7fa);
+        }
+        .eyebrow {
+            margin: 0 0 12px;
+            color: #b90064;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        .hero-title {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.14;
+            letter-spacing: -0.04em;
+            font-weight: 700;
+        }
+        .hero-meta {
+            color: #5f6d7c;
+            font-size: 12px;
+            line-height: 1.7;
+            text-align: right;
+        }
+        .hero-divider {
+            height: 1px;
+            margin-top: 18px;
+            background: #e5e7eb;
+        }
+        .content {
+            padding: 0 16px 20px;
+        }
+        .section {
+            margin-top: 12px;
+            background: #f3f4f5;
+            border-radius: 20px;
+            padding: 16px;
+        }
+        .section-kicker {
+            display: inline-block;
+            margin: 0 0 8px;
+            color: #5e6b78;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .section-title {
+            margin: 0 0 10px;
+            font-size: 19px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+        .summary-panel {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .summary-list,
+        .signal-list,
+        .more-list ol {
+            margin: 0;
+            padding-left: 16px;
+        }
+        .summary-list li,
+        .signal-list li,
+        .more-list li {
+            color: #526478;
+            font-size: 12px;
+            line-height: 1.7;
+            margin: 0 0 4px;
+        }
+        .signals-table,
+        .categories-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+        }
+        .signal-card {
+            width: 33.33%;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 14px;
+            vertical-align: top;
+        }
+        .signal-label {
+            margin: 0 0 6px;
+            color: #b90064;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .signal-title {
+            margin: 0 0 8px;
+            font-size: 16px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+        .signal-copy {
+            margin: 0;
+            color: #526478;
+            font-size: 12px;
+            line-height: 1.65;
+        }
+        .category-column {
+            width: 50%;
+            vertical-align: top;
+            padding-top: 10px;
+        }
+        .category-card {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .category-header {
+            padding: 15px 16px;
+            background: #fbf4f8;
+        }
+        .category-label {
+            margin: 0 0 6px;
+            color: #b90064;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .category-title {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+        .count {
+            color: #5e6b78;
+            font-size: 11px;
+            font-weight: 400;
+        }
+        .category-body {
+            padding: 12px 16px 14px;
+        }
+        .article-card {
+            padding: 10px 0;
+            border-bottom: 1px solid #edf0f2;
+        }
+        .article-card:last-child {
+            border-bottom: 0;
+        }
+        .source {
+            color: #758291;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .title {
+            color: #191c1d;
+            font-size: 14px;
+            line-height: 1.45;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+        .summary {
+            color: #526478;
+            font-size: 11px;
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+        .link {
+            color: #b90064;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .more-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #edf0f2;
+        }
+        .more-title {
+            display: inline-block;
+            margin-bottom: 6px;
+            color: #36485b;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .empty-text {
+            margin: 0;
+            color: #758291;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+        .footer {
+            padding: 24px 30px 28px;
+            text-align: center;
+            color: #8a96a3;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+        @media only screen and (max-width: 720px) {
+            body {
+                padding: 10px;
+            }
+            .topbar,
+            .hero,
+            .footer {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+            .content {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+            .signal-card,
+            .category-column,
+            .hero-left,
+            .hero-right {
+                display: block !important;
+                width: 100% !important;
+            }
+            .hero-meta {
+                text-align: left !important;
+                padding-top: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="topbar">
+                <p class="brand">SK Telecom Newsroom</p>
+                <p class="brand-sub">SKT 로밍팀 Daily Intelligence Report</p>
+            </div>
+
+            <div class="hero">
+                <p class="eyebrow">Daily Intelligence</p>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td class="hero-left" valign="bottom">
+                            <h1 class="hero-title">SKT 로밍팀 일일 뉴스 리포트</h1>
+                        </td>
+                        <td class="hero-right hero-meta" valign="bottom">
+                            2026년 04월 09일<br>
+                            핵심 2건 + 기타 링크 요약
+                        </td>
+                    </tr>
+                </table>
+                <div class="hero-divider"></div>
+            </div>
+
+            <div class="content">
+                <div class="section">
+                    <span class="section-kicker">Executive Summary</span>
+                    <div class="summary-panel">
+                        <h2 class="section-title">오늘의 3줄 요약</h2>
+                        <ul class="summary-list"><li>5G SA roaming 상용 연결 사례 증가</li>
+<li>travel eSIM의 self-serve UX 강화</li>
+<li>[권고] baro 차별 메시지 재정의</li></ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-kicker">Core Signals</span>
+                    <table class="signals-table" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td class="signal-card">
+                                <p class="signal-label">Strategic Insight</p>
+                                <h3 class="signal-title">전략 인사이트</h3>
+                                <p class="signal-copy">통신사 로밍은 activation speed, quality assurance, 혜택 설계까지 포함한 경험 상품으로 재정의되는 중입니다.</p>
+                            </td>
+                            <td class="signal-card">
+                                <p class="signal-label">Key Findings</p>
+                                <h3 class="signal-title">주요 발견</h3>
+                                <ul class="signal-list"><li>5G SA roaming 상용 연결 사례 증가</li>
+<li>travel eSIM의 self-serve UX 강화</li>
+<li>품질 가시성이 새 경쟁 포인트로 부상</li></ul>
+                            </td>
+                            <td class="signal-card">
+                                <p class="signal-label">Action</p>
+                                <h3 class="signal-title">행동 권고</h3>
+                                <ul class="signal-list"><li>baro 차별 메시지 재정의</li>
+<li>공항 개통 경험 점검</li>
+<li>경쟁사 UX 비교 추적</li></ul>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <span class="section-kicker">Category View</span>
+                    <h2 class="section-title">카테고리별 뉴스 구성</h2>
+                    <table class="categories-table" cellpadding="0" cellspacing="0" border="0">
+                        
+                <tr>
+                    
+        <td class="category-column">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-label">CATEGORY 01</div>
+                    <div class="category-title">Market &amp; Culture <span class="count">(3건)</span></div>
+                </div>
+                <div class="category-body">
+                    
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | Telecoms.com</div>
+            <div class="title">여행 수요와 eSIM 시장 확대</div>
+            <div class="summary">여행 연결 시장에서 eSIM이 기본 옵션으로 자리 잡는 흐름이 강화되고 있습니다.</div>
+            <a href="https://example.com/1" class="link">원문 보기</a>
+        </div>
+        
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | SKT Newsroom</div>
+            <div class="title">해외 여행 시즌 로밍 수요 증가</div>
+            <div class="summary">시즌성 수요와 로밍 상품 메시지를 연결하는 운영 포인트가 커지고 있습니다.</div>
+            <a href="https://example.com/2" class="link">원문 보기</a>
+        </div>
+        
+                    
+        <div class="more-list">
+            <strong class="more-title">기타 1건</strong>
+            <ol><li><a href="https://example.com/3" class="link">추가 기사 A</a></li></ol>
+        </div>
+        
+                </div>
+            </div>
+        </td>
+        
+                    
+        <td class="category-column">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-label">CATEGORY 02</div>
+                    <div class="category-title">Global Roaming Trend <span class="count">(3건)</span></div>
+                </div>
+                <div class="category-body">
+                    
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | Ericsson</div>
+            <div class="title">해외 로밍 동향 기사(한글 번역 준비중)</div>
+            <div class="summary">5G SA roaming 상용화 기대를 높이는 대표 사례입니다.</div>
+            <a href="https://example.com/4" class="link">원문 보기</a>
+        </div>
+        
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | Ericsson</div>
+            <div class="title">해외 로밍 동향 기사(한글 번역 준비중)</div>
+            <div class="summary">Native 5G 기반 roaming 전환 흐름이 뚜렷해지고 있습니다.</div>
+            <a href="https://example.com/5" class="link">원문 보기</a>
+        </div>
+        
+                    
+        <div class="more-list">
+            <strong class="more-title">기타 1건</strong>
+            <ol><li><a href="https://example.com/6" class="link">추가 기사 B</a></li></ol>
+        </div>
+        
+                </div>
+            </div>
+        </td>
+        
+                </tr>
+                
+
+                <tr>
+                    
+        <td class="category-column">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-label">CATEGORY 03</div>
+                    <div class="category-title">SKT &amp; Competitors <span class="count">(2건)</span></div>
+                </div>
+                <div class="category-body">
+                    
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | SKT</div>
+            <div class="title">SKT baro 데이터 혜택 강화</div>
+            <div class="summary">초기 진입 장벽을 낮추는 방향의 경쟁 전략입니다.</div>
+            <a href="https://example.com/7" class="link">원문 보기</a>
+        </div>
+        
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | LG U+</div>
+            <div class="title">LG U+ travel eSIM 운영 확대</div>
+            <div class="summary">설치성과 여행 동선 중심 설명이 비교 포인트입니다.</div>
+            <a href="https://example.com/8" class="link">원문 보기</a>
+        </div>
+        
+                    
+                </div>
+            </div>
+        </td>
+        
+                    
+        <td class="category-column">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-label">CATEGORY 04</div>
+                    <div class="category-title">eSIM Products <span class="count">(2건)</span></div>
+                </div>
+                <div class="category-body">
+                    
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | Airalo</div>
+            <div class="title">Airalo for Business 기능 확대</div>
+            <div class="summary">출장자 self-purchase 기능으로 B2B 확장 흐름을 보여줍니다.</div>
+            <a href="https://example.com/9" class="link">원문 보기</a>
+        </div>
+        
+        <div class="article-card">
+            <div class="source">뉴스 하이라이트 | DT One</div>
+            <div class="title">Grab 앱 내부 eSIM 통합</div>
+            <div class="summary">super app 안으로 eSIM 구매가 들어가는 흐름입니다.</div>
+            <a href="https://example.com/10" class="link">원문 보기</a>
+        </div>
+        
+                    
+                </div>
+            </div>
+        </td>
+        
+                </tr>
+                
+
+                <tr>
+                    
+        <td class="category-column">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-label">CATEGORY 05</div>
+                    <div class="category-title">로밍 VoC <span class="count">(2건)</span></div>
+                </div>
+                <div class="category-body">
+                    
+        <div class="article-card">
+            <div class="source">VoC 하이라이트 | VoC</div>
+            <div class="title">공항에서 바로 켜지는 경험이 중요</div>
+            <div class="summary">개통 실패 경험이 만족도를 크게 떨어뜨립니다.</div>
+            <a href="https://example.com/11" class="link">원문 보기</a>
+        </div>
+        
+        <div class="article-card">
+            <div class="source">VoC 하이라이트 | VoC</div>
+            <div class="title">개통 속도와 안정성이 재구매에 영향</div>
+            <div class="summary">요금보다 activation friction이 더 민감하게 평가됩니다.</div>
+            <a href="https://example.com/12" class="link">원문 보기</a>
+        </div>
+        
+                    
+                </div>
+            </div>
+        </td>
+        
+                    
+        <td class="category-column">
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-label">CATEGORY 06</div>
+                    <div class="category-title">eSIM VoC <span class="count">(2건)</span></div>
+                </div>
+                <div class="category-body">
+                    
+        <div class="article-card">
+            <div class="source">VoC 하이라이트 | VoC</div>
+            <div class="title">재설치 정책이 혼란 포인트</div>
+            <div class="summary">사용자는 기술보다 재설치와 고객지원 응답 속도를 더 민감하게 평가합니다.</div>
+            <a href="https://example.com/13" class="link">원문 보기</a>
+        </div>
+        
+        <div class="article-card">
+            <div class="source">VoC 하이라이트 | VoC</div>
+            <div class="title">앱 내 구매-개통 일체형 선호</div>
+            <div class="summary">UI/UX 완결성이 eSIM 만족도를 좌우합니다.</div>
+            <a href="https://example.com/14" class="link">원문 보기</a>
+        </div>
+        
+                    
+                </div>
+            </div>
+        </td>
+        
+                </tr>
+                
+                    </table>
+                </div>
+            </div>
+
+            <div class="footer">
+                SK Telecom Roaming Team<br>
+                Daily Intelligence Report
+            </div>
+        </div>
+    </div>
+</body>
+</html>

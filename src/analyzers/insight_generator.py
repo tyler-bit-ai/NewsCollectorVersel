@@ -71,23 +71,27 @@ class InsightGenerator(BaseAnalyzer):
 
 {full_text}
 
-이를 바탕으로 다음을 분석해 주세요:
+이를 바탕으로 다음을 분석해 주세요.
 
-1. 전략 인사이트 (Strategic Insight): 오늘의 뉴스가 SKT 로밍 사업에 주는 시사점 (1-2문단)
-2. 주요 발견 (Key Findings): 중요한 트렌드나 변화 (3-5개 bullet points)
-3. 행동 권고 (Recommendations): SKT가 고려해야 할 사항 (2-3개)
+중요 규칙:
+1. strategic_insight는 반드시 한국어 1문단, 최대 200자 이내로 작성합니다.
+2. key_findings는 중요도 기준으로 가장 중요한 3개만 작성합니다.
+3. recommendations는 실행 우선순위 기준으로 가장 중요한 3개만 작성합니다.
+4. key_findings와 recommendations의 각 항목은 짧고 압축적으로, 한 항목당 60자 내외로 작성합니다.
+5. 군더더기 표현, 중복 표현, 서론 문장은 제외하고 바로 핵심만 작성합니다.
+6. JSON 외 다른 텍스트는 절대 출력하지 않습니다.
 
 JSON 형식으로 반환:
 {{
   "strategic_insight": "...",
-  "key_findings": ["...", "..."],
-  "recommendations": ["...", "..."]
+  "key_findings": ["...", "...", "..."],
+  "recommendations": ["...", "...", "..."]
 }}
 """
 
         try:
             return self._call_ai([
-                {"role": "system", "content": "당신은 통신사 로밍 사업 전략 전문가입니다."},
+                {"role": "system", "content": "당신은 통신사 로밍 사업 전략 전문가입니다. 응답은 반드시 JSON 객체만 반환하고, strategic_insight는 200자 이하, key_findings와 recommendations는 각각 가장 중요한 3개만 압축해 작성하세요."},
                 {"role": "user", "content": prompt}
             ])
         except Exception as e:

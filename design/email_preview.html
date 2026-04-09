@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Preview Draft</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: #eef1f4;
+      color: #191c1d;
+      font-family: "Inter", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    .frame {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .note {
+      margin: 0 0 16px;
+      color: #5e6b78;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+
+    .canvas {
+      background: linear-gradient(180deg, #f7f8fa 0%, #eef1f4 100%);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 22px 60px rgba(28, 35, 43, 0.10);
+    }
+
+    .topbar {
+      padding: 22px 36px;
+      background: rgba(255, 255, 255, 0.84);
+      border-bottom: 1px solid rgba(185, 0, 100, 0.10);
+    }
+
+    .brand {
+      color: #b90064;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    .brand-sub {
+      margin: 6px 0 0;
+      color: #758291;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      padding: 40px 36px 30px;
+      background:
+        radial-gradient(circle at top right, rgba(230, 0, 126, 0.12), transparent 30%),
+        linear-gradient(135deg, rgba(185, 0, 100, 0.05), rgba(230, 0, 126, 0.02));
+    }
+
+    .eyebrow {
+      color: #b90064;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin: 0 0 14px;
+    }
+
+    .hero-grid {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-size: 44px;
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+      max-width: 520px;
+    }
+
+    .hero-title span {
+      color: #e6007e;
+    }
+
+    .hero-meta {
+      text-align: right;
+      vertical-align: bottom;
+      color: #5e6b78;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: nowrap;
+    }
+
+    .hero-divider {
+      height: 1px;
+      background: rgba(78, 96, 115, 0.14);
+      margin-top: 22px;
+    }
+
+    .content {
+      padding: 0 24px 28px;
+    }
+
+    .section {
+      margin-top: 16px;
+      background: #f3f4f5;
+      border-radius: 24px;
+      padding: 22px;
+    }
+
+    .section-header {
+      margin: 0 0 16px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .section-kicker {
+      display: inline-block;
+      margin: 0 0 10px;
+      color: #5e6b78;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .summary-panel {
+      background: linear-gradient(135deg, #ffffff, #faf8fb);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(25, 28, 29, 0.04);
+    }
+
+    .summary-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #36485b;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .insight-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 14px 0;
+      margin: 0 -14px;
+    }
+
+    .metric-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 20px;
+      vertical-align: top;
+      box-shadow: 0 8px 24px rgba(25, 28, 29, 0.04);
+    }
+
+    .metric-label {
+      margin: 0 0 8px;
+      color: #b90064;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .metric-title {
+      margin: 0 0 10px;
+      font-size: 20px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .metric-copy,
+    .metric-list {
+      margin: 0;
+      color: #526478;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .metric-list {
+      padding-left: 18px;
+    }
+
+    .feature-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 16px 16px;
+      margin: -16px;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 18px;
+      vertical-align: top;
+      box-shadow: 0 10px 26px rgba(25, 28, 29, 0.05);
+    }
+
+    .thumb {
+      height: 160px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #17324c, #2a6a9b);
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 9px;
+      border-radius: 6px;
+      background: #d1e4fb;
+      color: #36485b;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      margin: 0 0 8px;
+      font-size: 22px;
+      line-height: 1.3;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .card-summary {
+      margin: 0 0 14px;
+      color: #526478;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .card-link {
+      color: #b90064;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .compact-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 14px 14px;
+      margin: -14px;
+    }
+
+    .compact-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 18px;
+      vertical-align: top;
+      min-height: 190px;
+      box-shadow: 0 8px 20px rgba(25, 28, 29, 0.04);
+    }
+
+    .compact-head {
+      margin: 0 0 10px;
+      color: #b90064;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .compact-title {
+      margin: 0 0 10px;
+      font-size: 18px;
+      line-height: 1.4;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .compact-copy {
+      margin: 0;
+      color: #526478;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .category-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 14px;
+    }
+
+    .category-shell {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(25, 28, 29, 0.04);
+    }
+
+    .category-head {
+      padding: 20px 22px;
+      background: linear-gradient(135deg, rgba(185, 0, 100, 0.05), rgba(230, 0, 126, 0.02));
+    }
+
+    .category-index {
+      margin: 0 0 8px;
+      color: #b90064;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .category-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .category-count {
+      color: #5e6b78;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .category-body {
+      padding: 18px 22px 22px;
+    }
+
+    .article {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(78, 96, 115, 0.10);
+    }
+
+    .article.last {
+      border-bottom: 0;
+      padding-bottom: 8px;
+    }
+
+    .article-meta {
+      margin: 0 0 8px;
+      color: #758291;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .article-title {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.45;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .article-copy {
+      margin: 0 0 10px;
+      color: #526478;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .more-box {
+      margin-top: 16px;
+      padding: 16px 18px;
+      background: #f8f9fa;
+      border-radius: 16px;
+    }
+
+    .more-title {
+      margin: 0 0 10px;
+      color: #36485b;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .more-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #526478;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .cta {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #b90064, #e6007e);
+      color: #ffffff;
+      border-radius: 24px;
+      padding: 28px 26px;
+    }
+
+    .cta-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .cta-title {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .cta-copy {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .cta-button-cell {
+      text-align: right;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 14px 22px;
+      background: #ffffff;
+      color: #b90064;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .footer {
+      padding: 28px 36px 34px;
+      text-align: center;
+      color: #8a96a3;
+      font-size: 12px;
+      line-height: 1.9;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 12px;
+      }
+
+      .topbar,
+      .hero,
+      .footer {
+        padding-left: 22px;
+        padding-right: 22px;
+      }
+
+      .content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .hero-grid,
+      .insight-grid,
+      .feature-grid,
+      .compact-grid,
+      .cta-table {
+        display: block;
+        width: 100%;
+      }
+
+      .hero-grid tr,
+      .hero-grid td,
+      .insight-grid tr,
+      .insight-grid td,
+      .feature-grid tr,
+      .feature-grid td,
+      .compact-grid tr,
+      .compact-grid td,
+      .cta-table tr,
+      .cta-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .hero-title {
+        font-size: 34px;
+        margin-bottom: 18px;
+      }
+
+      .hero-meta,
+      .cta-button-cell {
+        text-align: left;
+      }
+
+      .feature-card,
+      .compact-card,
+      .metric-card {
+        margin-bottom: 14px;
+      }
+
+      .cta-button {
+        margin-top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="note">Draft preview only. 실제 메일 템플릿 적용 전 컨펌용 시안입니다.</p>
+
+    <div class="canvas">
+      <div class="topbar">
+        <p class="brand">SK Telecom Newsroom</p>
+        <p class="brand-sub">SKT 로밍팀 Daily Intelligence Report</p>
+      </div>
+
+      <div class="hero">
+        <p class="eyebrow">Daily Intelligence</p>
+        <table class="hero-grid" role="presentation">
+          <tr>
+            <td>
+              <h1 class="hero-title">글로벌 로밍 인텔리전스의 <span>새로운 흐름을 읽다</span></h1>
+            </td>
+            <td class="hero-meta">
+              2026년 04월 09일 (목)<br>
+              핵심 {{EMAIL_TOP_N}}건 + 기타 링크 요약
+            </td>
+          </tr>
+        </table>
+        <div class="hero-divider"></div>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <span class="section-kicker">Executive Summary</span>
+          <div class="summary-panel">
+            <h2 class="section-header">오늘의 5줄 요약</h2>
+            <ol class="summary-list">
+              <li>글로벌 로밍 수요와 eSIM 전환 흐름을 가장 먼저 읽도록 상단에 핵심 요약을 고정 배치합니다.</li>
+              <li>전략 인사이트, 주요 발견, 행동 권고는 한 단락이 아닌 독립 카드로 분리해 훑어보기 속도를 높입니다.</li>
+              <li>해외 안전 공지는 일반 뉴스와 분리해 업무 우선순위가 바로 드러나도록 처리합니다.</li>
+              <li>카테고리 섹션은 기존 데이터 구조를 유지하되, 카드와 추가 링크를 혼합한 newsroom 구성을 적용합니다.</li>
+              <li>전체 레이아웃은 참고안처럼 editorial 톤을 따르지만 메일 환경에서 안전한 구조로 단순화합니다.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="section-kicker">Core Signals</span>
+          <table class="insight-grid" role="presentation">
+            <tr>
+              <td class="metric-card">
+                <p class="metric-label">Strategic Insight</p>
+                <h3 class="metric-title">전략 인사이트</h3>
+                <p class="metric-copy">`{{STRATEGIC_INSIGHT}}`는 별도 카드로 독립 배치해 본문 중간에 묻히지 않게 구성합니다. 긴 문장도 2~3문단 느낌으로 읽히도록 행간을 확보합니다.</p>
+              </td>
+              <td class="metric-card">
+                <p class="metric-label">Key Findings</p>
+                <h3 class="metric-title">주요 발견</h3>
+                <ul class="metric-list">
+                  <li>`{{KEY_FINDINGS}}`는 불릿 리스트 유지</li>
+                  <li>짧은 문장 위주 스캔형 구성</li>
+                  <li>분석성 항목과 운영성 항목 구분 가능</li>
+                </ul>
+              </td>
+              <td class="metric-card">
+                <p class="metric-label">Action</p>
+                <h3 class="metric-title">행동 권고</h3>
+                <ul class="metric-list">
+                  <li>`{{RECOMMENDATIONS}}` 전용 카드</li>
+                  <li>실행 문장 강조</li>
+                  <li>운영 액션 우선순위 부각</li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <span class="section-kicker">Category Flow</span>
+          <h2 class="section-header">카테고리별 뉴스 구성</h2>
+          <table class="compact-grid" role="presentation">
+            <tr>
+              <td class="compact-card">
+                <p class="compact-head">Featured Category</p>
+                <h3 class="compact-title">기사 수가 많거나 중요한 카테고리는 상단 Featured 처리</h3>
+                <p class="compact-copy">예: `1. Global Roaming Trend`, `2. SKT & Competitors`는 카드형 기사 2~3개 + 추가 링크 묶음으로 구성.</p>
+              </td>
+              <td class="compact-card">
+                <p class="compact-head">Standard Category</p>
+                <h3 class="compact-title">일반 카테고리는 긴 리스트 대신 읽기 쉬운 단위로 정리</h3>
+                <p class="compact-copy">예: `0. Market & Culture`, `3. eSIM Products`, `4. 로밍 VoC`, `5. eSIM VoC`는 요약 카드와 링크 리스트를 혼합.</p>
+              </td>
+              <td class="compact-card">
+                <p class="compact-head">More Links</p>
+                <h3 class="compact-title">기타 링크는 박스 하단에 별도 묶음으로 배치</h3>
+                <p class="compact-copy">현재 formatter 구조의 `remaining articles`와 자연스럽게 맞물리도록 설계합니다.</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <span class="section-kicker">Template Mapping</span>
+          <table class="category-table" role="presentation">
+            <tr>
+              <td class="category-shell">
+                <div class="category-head">
+                  <p class="category-index">Category 01</p>
+                  <p class="category-title">1. Global Roaming Trend <span class="category-count">(8건)</span></p>
+                </div>
+                <div class="category-body">
+                  <div class="article">
+                    <p class="article-meta">뉴스 하이라이트 | Reuters</p>
+                    <p class="article-title">대표 기사 1개는 제목과 요약을 넉넉하게 보여주는 editorial card로 노출</p>
+                    <p class="article-copy">현재 `title / summary / link / source` 구조를 그대로 사용하면서, 배경과 타이포만 재구성하는 방식입니다.</p>
+                    <a class="card-link" href="#">원문 보기</a>
+                  </div>
+                  <div class="article">
+                    <p class="article-meta">뉴스 하이라이트 | Bloomberg</p>
+                    <p class="article-title">대표 기사 2~3개까지는 동일 패턴으로 반복</p>
+                    <p class="article-copy">현재의 `EMAIL_TOP_N` 정책과 직접 호환되도록 설계해 formatter 로직 변경을 최소화할 수 있습니다.</p>
+                    <a class="card-link" href="#">원문 보기</a>
+                  </div>
+                  <div class="more-box">
+                    <p class="more-title">기타 5건</p>
+                    <ol class="more-list">
+                      <li>추가 기사 링크는 간결한 목록으로 정리</li>
+                      <li>카테고리별 기사 수가 많아도 길이 제어 가능</li>
+                      <li>메일 스캔성 유지</li>
+                    </ol>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="category-shell">
+                <div class="category-head">
+                  <p class="category-index">Category 02</p>
+                  <p class="category-title">2. SKT & Competitors / 3. eSIM Products / VoC 섹션 공통 패턴</p>
+                </div>
+                <div class="category-body">
+                  <div class="article">
+                    <p class="article-meta">VoC 하이라이트 | App Store Review</p>
+                    <p class="article-title">모든 카테고리에 동일한 뼈대를 적용하되, 메타 라벨만 카테고리 성격에 맞게 조정</p>
+                    <p class="article-copy">따라서 기존 카테고리 수가 유지돼도 전체 시각 체계는 통일되고, 독자는 섹션마다 같은 방식으로 읽을 수 있습니다.</p>
+                    <a class="card-link" href="#">원문 보기</a>
+                  </div>
+                  <div class="article last">
+                    <p class="article-meta">Fallback</p>
+                    <p class="article-title">기사 수가 0건일 때는 비어 있는 박스 대신 절제된 빈 상태 메시지 표시</p>
+                    <p class="article-copy">현재 empty-state 동작도 그대로 이어갈 수 있습니다.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="footer">
+        SK Telecom Roaming Team<br>
+        Privacy Policy · Terms of Service · Contact<br>
+        Designed for internal editorial reporting
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,10 +1,13 @@
 """
 HTML 이메일 생성
 """
+from __future__ import annotations
+
 from datetime import datetime
 import html as html_lib
 from pathlib import Path
 from typing import Dict, List
+
 from src.utils.helpers import ensure_global_trend_korean_text
 
 
@@ -12,12 +15,12 @@ class EmailFormatter:
     """이메일 포매터"""
 
     CATEGORY_NAMES = {
-        "market_culture": "0. Market & Culture (Macro)",
-        "global_trend": "1. Global Roaming Trend",
-        "competitors": "2. SKT & Competitors",
-        "esim_products": "3. eSIM Products",
-        "voc_roaming": "4. 로밍 VoC",
-        "voc_esim": "5. eSIM VoC",
+        "market_culture": "Market & Culture",
+        "global_trend": "Global Roaming Trend",
+        "competitors": "SKT & Competitors",
+        "esim_products": "eSIM Products",
+        "voc_roaming": "로밍 VoC",
+        "voc_esim": "eSIM VoC",
     }
 
     def __init__(self, template_dir: str | None = None, top_n: int = 3, summary_max_chars: int = 140):
@@ -45,7 +48,6 @@ class EmailFormatter:
         rendered = template.replace("{{DATE}}", datetime.now().strftime("%Y년 %m월 %d일"))
         rendered = rendered.replace("{{EMAIL_TOP_N}}", str(self.top_n))
         rendered = rendered.replace("{{TODAY_BRIEF}}", self._format_today_brief(data))
-        rendered = rendered.replace("{{EXTERNAL_ALERTS_SECTION}}", self._format_external_alerts_section(data.get("external_alerts", [])))
         rendered = rendered.replace("{{STRATEGIC_INSIGHT}}", self._format_paragraph(data.get("strategic_insight", "")))
         rendered = rendered.replace("{{KEY_FINDINGS}}", self._format_findings(data.get("key_findings", [])))
         rendered = rendered.replace("{{RECOMMENDATIONS}}", self._format_recommendations(data.get("recommendations", [])))
@@ -54,13 +56,13 @@ class EmailFormatter:
 
     def _format_today_brief(self, data: Dict) -> str:
         lines: List[str] = []
-        for finding in data.get("key_findings", [])[:3]:
-            lines.append(self._truncate(str(finding), 120))
-        for rec in data.get("recommendations", [])[:2]:
-            lines.append(f"[권고] {self._truncate(str(rec), 120)}")
+        for finding in data.get("key_findings", [])[:2]:
+            lines.append(self._truncate(str(finding), 110))
+        for rec in data.get("recommendations", [])[:1]:
+            lines.append(f"[권고] {self._truncate(str(rec), 110)}")
         if not lines:
             lines.append("요약 데이터가 없습니다.")
-        return "\n".join(f"<li>{html_lib.escape(line)}</li>" for line in lines[:5])
+        return "\n".join(f"<li>{html_lib.escape(line)}</li>" for line in lines[:3])
 
     def _format_paragraph(self, text: str) -> str:
         escaped = html_lib.escape(str(text or ""))
@@ -70,98 +72,92 @@ class EmailFormatter:
 
     def _format_findings(self, findings: List[str]) -> str:
         if not findings:
-            return "<li>없음</li>"
-        return "\n".join(f"<li>{html_lib.escape(str(item))}</li>" for item in findings)
+            return self._format_compact_bullets(["없음"])
+        limited = [str(item) for item in findings[:3]]
+        return self._format_compact_bullets(limited)
 
     def _format_recommendations(self, recommendations: List[str]) -> str:
         if not recommendations:
-            return "<li>없음</li>"
-        return "\n".join(f"<li>{html_lib.escape(str(item))}</li>" for item in recommendations)
+            return self._format_compact_bullets(["없음"])
+        limited = [str(item) for item in recommendations[:3]]
+        return self._format_compact_bullets(limited)
 
-    def _format_external_alerts_section(self, alerts: List[Dict]) -> str:
-        if not alerts:
-            return """
-            <div class="section">
-                <h2>해외 안전 공지 <span class="count">(0건)</span></h2>
-                <p>당일 매칭 공지 없음</p>
-            </div>
-            """
-
-        rendered = []
-        for alert in alerts[: self.top_n]:
-            if not isinstance(alert, dict):
-                continue
-            title = html_lib.escape(alert.get("title", ""))
-            content = html_lib.escape(self._truncate(alert.get("content_one_line", ""), self.summary_max_chars))
-            link = html_lib.escape(alert.get("link", ""))
-            board_name = html_lib.escape(alert.get("board_name", ""))
-
-            rendered.append(
+    def _format_compact_bullets(self, items: List[str]) -> str:
+        rows = []
+        for item in items:
+            rows.append(
                 f"""
-                <div class="article">
-                    <div class="source">{board_name}</div>
-                    <div class="title">{title}</div>
-                    <div class="summary">{content}</div>
-                    <a href="{link}" class="link">원문 보기</a>
-                </div>
+                <tr>
+                    <td width="8" valign="top" style="font-size:12px; line-height:1.55; color:#526478; padding:0 4px 3px 0;">•</td>
+                    <td valign="top" style="font-size:12px; line-height:1.55; color:#526478; padding:0 0 3px 0;">{html_lib.escape(str(item))}</td>
+                </tr>
                 """
             )
-
-        more_html = ""
-        remaining = alerts[self.top_n :]
-        if remaining:
-            items = []
-            for alert in remaining:
-                if not isinstance(alert, dict):
-                    continue
-                title = html_lib.escape(alert.get("title", ""))
-                link = html_lib.escape(alert.get("link", ""))
-                items.append(f'<li><a href="{link}" class="link">{title}</a></li>')
-            if items:
-                more_html = f"""
-                <div class="more-list">
-                    <strong>기타 {len(items)}건</strong>
-                    <ol>{''.join(items)}</ol>
-                </div>
-                """
-
-        return f"""
-        <div class="section">
-            <h2>해외 안전 공지 <span class="count">({len(alerts)}건)</span></h2>
-            {''.join(rendered)}
-            {more_html}
-        </div>
-        """
+        return f'<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">{"".join(rows)}</table>'
 
     def _generate_category_sections(self, data: Dict) -> str:
-        sections = []
-        for key, name in self.CATEGORY_NAMES.items():
+        cells = []
+        for index, (key, name) in enumerate(self.CATEGORY_NAMES.items(), start=1):
             raw_articles = data.get(f"section_{key}", [])
             articles = [item for item in raw_articles if isinstance(item, dict)]
-            sections.append(self._render_category_section(name=name, category_key=key, articles=articles))
-        return "\n".join(sections)
+            cells.append(self._render_category_cell(index=index, name=name, category_key=key, articles=articles))
 
-    def _render_category_section(self, name: str, category_key: str, articles: List[Dict]) -> str:
+        rows = []
+        for start in range(0, len(cells), 2):
+            left = cells[start]
+            right = cells[start + 1] if start + 1 < len(cells) else '<td class="category-column">&nbsp;</td>'
+            rows.append(
+                f"""
+                <tr>
+                    {left}
+                    {right}
+                </tr>
+                """
+            )
+        return "\n".join(rows)
+
+    def _render_category_cell(self, index: int, name: str, category_key: str, articles: List[Dict]) -> str:
         if not articles:
             return f"""
-            <div class="section">
-                <h2>{html_lib.escape(name)} <span class="count">(0건)</span></h2>
-                <p>데이터가 없습니다.</p>
-            </div>
+            <td width="50%" style="padding: 10px 5px 0 0;" valign="top">
+                <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                    <tr>
+                        <td class="category-head" style="padding: 14px 16px;">
+                            <p class="category-label" style="margin-bottom: 6px;">CATEGORY {index:02d}</p>
+                            <p class="category-title">{html_lib.escape(name)} <span class="count">(0건)</span></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 16px 14px;">
+                            <p class="empty-text">데이터가 없습니다.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
             """
 
         top_articles = articles[: self.top_n]
         remaining = articles[self.top_n :]
-
         top_html = [self._render_article_card(article, category_key) for article in top_articles]
         more_html = self._render_more_links(remaining, category_key=category_key)
 
         return f"""
-        <div class="section">
-            <h2>{html_lib.escape(name)} <span class="count">({len(articles)}건)</span></h2>
-            {''.join(top_html)}
-            {more_html}
-        </div>
+        <td width="50%" style="padding: 10px 5px 0 0;" valign="top">
+            <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                <tr>
+                    <td class="category-head" style="padding: 14px 16px;">
+                        <p class="category-label" style="margin-bottom: 6px;">CATEGORY {index:02d}</p>
+                        <p class="category-title">{html_lib.escape(name)} <span class="count">({len(articles)}건)</span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 16px 14px;">
+                        {''.join(top_html)}
+                        {more_html}
+                    </td>
+                </tr>
+            </table>
+        </td>
         """
 
     def _render_article_card(self, article: Dict, category_key: str) -> str:
@@ -173,15 +169,19 @@ class EmailFormatter:
         title = html_lib.escape(title_raw)
         summary = html_lib.escape(self._truncate(summary_raw, self.summary_max_chars))
         link = html_lib.escape(str(article.get("link", "")))
-
         section_hint = "VoC 하이라이트" if category_key.startswith("voc_") else "뉴스 하이라이트"
+
         return f"""
-        <div class="article">
-            <div class="source">{section_hint}{' | ' + source if source else ''}</div>
-            <div class="title">{title}</div>
-            <div class="summary">{summary}</div>
-            <a href="{link}" class="link">원문 보기</a>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-bottom: 1px solid #edf0f2;">
+            <tr>
+                <td style="padding: 10px 0;">
+                    <p class="article-source" style="margin-bottom: 6px;">{section_hint}{' | ' + source if source else ''}</p>
+                    <p class="article-title" style="margin-bottom: 6px;">{title}</p>
+                    <p class="article-summary" style="margin-bottom: 8px;">{summary}</p>
+                    <a href="{link}" class="link">원문 보기</a>
+                </td>
+            </tr>
+        </table>
         """
 
     def _render_more_links(self, remaining: List[Dict], category_key: str = "") -> str:
@@ -201,10 +201,14 @@ class EmailFormatter:
             return ""
 
         return f"""
-        <div class="more-list">
-            <strong>기타 {len(items)}건</strong>
-            <ol>{''.join(items)}</ol>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-top: 1px solid #edf0f2;">
+            <tr>
+                <td style="padding-top: 10px;">
+                    <p class="more-title" style="margin-bottom: 6px;">기타 {len(items)}건</p>
+                    <ol class="more-list">{''.join(items)}</ol>
+                </td>
+            </tr>
+        </table>
         """
 
     def format_safety_alert_digest(self, alerts: List[Dict]) -> str:
@@ -299,12 +303,11 @@ class EmailFormatter:
         <body>
             <h1>SKT 로밍팀 일일 뉴스 리포트</h1>
             <p><strong>{{DATE}}</strong></p>
-            <div class="section"><h2>오늘의 5줄 요약</h2><ul>{{TODAY_BRIEF}}</ul></div>
-            {{EXTERNAL_ALERTS_SECTION}}
-            <div class="section"><h2>📊 전략 인사이트</h2><p>{{STRATEGIC_INSIGHT}}</p></div>
-            <div class="section"><h2>🔍 주요 발견</h2><ul>{{KEY_FINDINGS}}</ul></div>
-            <div class="section"><h2>💡 행동 권고</h2><ul>{{RECOMMENDATIONS}}</ul></div>
-            {{CATEGORY_SECTIONS}}
+            <div class="section"><h2>오늘의 3줄 요약</h2><ul>{{TODAY_BRIEF}}</ul></div>
+            <div class="section"><h2>전략 인사이트</h2><p>{{STRATEGIC_INSIGHT}}</p></div>
+            <div class="section"><h2>주요 발견</h2><ul>{{KEY_FINDINGS}}</ul></div>
+            <div class="section"><h2>행동 권고</h2><ul>{{RECOMMENDATIONS}}</ul></div>
+            <table>{{CATEGORY_SECTIONS}}</table>
         </body>
         </html>
         """
