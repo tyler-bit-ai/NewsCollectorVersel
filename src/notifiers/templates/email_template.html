@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style>
+        body, table, td, p, a, li {
+            font-family: Arial, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #eef1f4;
+            color: #191c1d;
+        }
+        table {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        td {
+            vertical-align: top;
+        }
+        p {
+            margin: 0;
+        }
+        .outer {
+            width: 100%;
+            background-color: #eef1f4;
+        }
+        .container {
+            width: 960px;
+            background-color: #f7f8fa;
+        }
+        .topbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e8dbe3;
+        }
+        .brand {
+            color: #b90064;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+        .brand-sub {
+            color: #7a8795;
+            font-size: 10px;
+            line-height: 1.5;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .hero {
+            background-color: #f8f3f6;
+            border-bottom: 1px solid #ece7eb;
+        }
+        .eyebrow {
+            color: #b90064;
+            font-size: 10px;
+            line-height: 1.4;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .hero-title {
+            color: #191c1d;
+            font-size: 30px;
+            line-height: 1.2;
+            font-weight: bold;
+        }
+        .hero-meta {
+            color: #5f6d7c;
+            font-size: 12px;
+            line-height: 1.7;
+            text-align: right;
+        }
+        .section-shell {
+            background-color: #f3f4f5;
+            border: 1px solid #e3e7ea;
+        }
+        .section-kicker {
+            color: #5e6b78;
+            font-size: 10px;
+            line-height: 1.4;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .section-title {
+            color: #191c1d;
+            font-size: 19px;
+            line-height: 1.3;
+            font-weight: bold;
+        }
+        .panel {
+            background-color: #ffffff;
+            border: 1px solid #e6ebee;
+        }
+        .summary-list,
+        .more-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .summary-list li,
+        .more-list li {
+            color: #526478;
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 4px;
+        }
+        .signal-card {
+            width: 33.33%;
+            background-color: #ffffff;
+            border: 1px solid #e6ebee;
+        }
+        .signal-label {
+            color: #b90064;
+            font-size: 10px;
+            line-height: 1.4;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .signal-title {
+            color: #191c1d;
+            font-size: 16px;
+            line-height: 1.3;
+            font-weight: bold;
+        }
+        .signal-copy {
+            color: #526478;
+            font-size: 12px;
+            line-height: 1.65;
+        }
+        .category-card {
+            background-color: #ffffff;
+            border: 1px solid #dfe5e9;
+        }
+        .category-head {
+            background-color: #fbf4f8;
+            border-bottom: 1px solid #ece2e8;
+        }
+        .category-label {
+            color: #b90064;
+            font-size: 10px;
+            line-height: 1.4;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .category-title {
+            color: #191c1d;
+            font-size: 16px;
+            line-height: 1.3;
+            font-weight: bold;
+        }
+        .count {
+            color: #5e6b78;
+            font-size: 11px;
+            font-weight: normal;
+        }
+        .article-source {
+            color: #758291;
+            font-size: 10px;
+            line-height: 1.5;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .article-title {
+            color: #191c1d;
+            font-size: 14px;
+            line-height: 1.45;
+            font-weight: bold;
+        }
+        .article-summary {
+            color: #526478;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+        .link {
+            color: #b90064;
+            font-size: 11px;
+            line-height: 1.5;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .more-title {
+            color: #36485b;
+            font-size: 11px;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+        .empty-text {
+            color: #758291;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+        .footer {
+            color: #8a96a3;
+            font-size: 11px;
+            line-height: 1.8;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <table class="outer" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table class="container" width="960" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                    <tr>
+                        <td class="topbar" style="padding: 18px 30px;">
+                            <p class="brand">SK Telecom Newsroom</p>
+                            <p class="brand-sub">SKT 로밍팀 Daily Intelligence Report</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="hero" style="padding: 28px 30px;">
+                            <p class="eyebrow" style="margin-bottom: 12px;">Daily Intelligence</p>
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                <tr>
+                                    <td width="68%" style="padding-right: 12px;">
+                                        <p class="hero-title">SKT 로밍팀 일일 뉴스 리포트</p>
+                                    </td>
+                                    <td width="32%" class="hero-meta">
+                                        {{DATE}}<br>
+                                        핵심 {{EMAIL_TOP_N}}건 + 기타 링크 요약
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 14px 0;">
+                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                <tr>
+                                    <td style="padding: 14px;">
+                                        <p class="section-kicker" style="margin-bottom: 8px;">Executive Summary</p>
+                                        <p class="section-title" style="margin-bottom: 10px;">오늘의 3줄 요약</p>
+                                        <table class="panel" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                            <tr>
+                                                <td style="padding: 14px;">
+                                                    <ul class="summary-list">{{TODAY_BRIEF}}</ul>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 14px 0;">
+                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                <tr>
+                                    <td style="padding: 14px;">
+                                        <p class="section-kicker" style="margin-bottom: 8px;">Core Signals</p>
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                            <tr>
+                                                <td class="signal-card" style="padding: 14px;">
+                                                    <p class="signal-label" style="margin-bottom: 6px;">Strategic Insight</p>
+                                                    <p class="signal-title" style="margin-bottom: 8px;">전략 인사이트</p>
+                                                    <p class="signal-copy">{{STRATEGIC_INSIGHT}}</p>
+                                                </td>
+                                                <td width="10"></td>
+                                                <td class="signal-card" style="padding: 14px;">
+                                                    <p class="signal-label" style="margin-bottom: 6px;">Key Findings</p>
+                                                    <p class="signal-title" style="margin-bottom: 8px;">주요 발견</p>
+                                                    {{KEY_FINDINGS}}
+                                                </td>
+                                                <td width="10"></td>
+                                                <td class="signal-card" style="padding: 14px;">
+                                                    <p class="signal-label" style="margin-bottom: 6px;">Action</p>
+                                                    <p class="signal-title" style="margin-bottom: 8px;">행동 권고</p>
+                                                    {{RECOMMENDATIONS}}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 14px 0;">
+                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                <tr>
+                                    <td style="padding: 14px;">
+                                        <p class="section-kicker" style="margin-bottom: 8px;">Category View</p>
+                                        <p class="section-title" style="margin-bottom: 10px;">카테고리별 뉴스 구성</p>
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                            {{CATEGORY_SECTIONS}}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer" style="padding: 24px 30px 28px;">
+                            SK Telecom Roaming Team<br>
+                            Daily Intelligence Report
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

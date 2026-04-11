@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px 14px;
+      background: #eef1f4;
+      color: #191c1d;
+      font-family: "Inter", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+    .frame {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .note {
+      margin: 0 0 12px;
+      color: #667382;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .canvas {
+      background: linear-gradient(180deg, #f7f8fa 0%, #eef1f4 100%);
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 18px 48px rgba(28, 35, 43, 0.10);
+    }
+    .topbar {
+      padding: 18px 30px;
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid rgba(185, 0, 100, 0.10);
+    }
+    .brand {
+      margin: 0;
+      color: #b90064;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .brand-sub {
+      margin: 4px 0 0;
+      color: #7a8795;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 30px 30px 24px;
+      background:
+        radial-gradient(circle at top right, rgba(230, 0, 126, 0.12), transparent 28%),
+        linear-gradient(135deg, rgba(185, 0, 100, 0.05), rgba(230, 0, 126, 0.02));
+    }
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #b90064;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .hero-grid {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .hero-title {
+      margin: 0;
+      max-width: 520px;
+      font-size: 30px;
+      line-height: 1.14;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+    }
+    .hero-meta {
+      text-align: right;
+      vertical-align: bottom;
+      color: #5f6d7c;
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: nowrap;
+    }
+    .hero-divider {
+      height: 1px;
+      margin-top: 18px;
+      background: rgba(78, 96, 115, 0.14);
+    }
+    .content {
+      padding: 0 16px 20px;
+    }
+    .section {
+      margin-top: 12px;
+      background: #f3f4f5;
+      border-radius: 20px;
+      padding: 16px;
+    }
+    .section-kicker {
+      display: inline-block;
+      margin: 0 0 8px;
+      color: #5e6b78;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .section-header {
+      margin: 0 0 10px;
+      font-size: 19px;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+    .summary-panel {
+      background: linear-gradient(135deg, #ffffff, #faf8fb);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(25, 28, 29, 0.04);
+    }
+    .summary-list {
+      margin: 0;
+      padding-left: 16px;
+      color: #36485b;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .insight-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      margin: 0 -10px;
+      table-layout: fixed;
+    }
+    .metric-card {
+      width: 33.33%;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px;
+      vertical-align: top;
+      box-shadow: 0 6px 18px rgba(25, 28, 29, 0.04);
+    }
+    .metric-label {
+      margin: 0 0 6px;
+      color: #b90064;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .metric-title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+    .metric-copy,
+    .metric-list {
+      margin: 0;
+      color: #526478;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .metric-list {
+      padding-left: 16px;
+    }
+    .category-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 10px 10px;
+      margin: -10px;
+      table-layout: fixed;
+    }
+    .category-cell {
+      width: 50%;
+      vertical-align: top;
+    }
+    .category-shell {
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(25, 28, 29, 0.04);
+      height: 100%;
+    }
+    .category-head {
+      padding: 15px 16px;
+      background: linear-gradient(135deg, rgba(185, 0, 100, 0.05), rgba(230, 0, 126, 0.02));
+    }
+    .category-index {
+      margin: 0 0 6px;
+      color: #b90064;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .category-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+    .category-count {
+      color: #5e6b78;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .category-body {
+      padding: 12px 16px 14px;
+    }
+    .article {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(78, 96, 115, 0.10);
+    }
+    .article.last {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .article-meta {
+      margin: 0 0 6px;
+      color: #758291;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .article-title {
+      margin: 0 0 6px;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .article-copy {
+      margin: 0 0 6px;
+      color: #526478;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .article-link {
+      color: #b90064;
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .footer {
+      padding: 24px 30px 28px;
+      text-align: center;
+      color: #8a96a3;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+    @media (max-width: 720px) {
+      body {
+        padding: 10px;
+      }
+      .topbar,
+      .hero,
+      .footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+      .content {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+      .hero-grid,
+      .insight-grid,
+      .category-grid {
+        display: block;
+        width: 100%;
+      }
+      .hero-grid tr,
+      .hero-grid td,
+      .insight-grid tr,
+      .insight-grid td,
+      .category-grid tr,
+      .category-grid td {
+        display: block;
+        width: 100%;
+      }
+      .hero-title {
+        font-size: 25px;
+        margin-bottom: 16px;
+      }
+      .hero-meta {
+        text-align: left;
+      }
+      .metric-card,
+      .category-cell {
+        margin-bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="note">실데이터 프리뷰. 2026-04-09 기준 공개 웹 자료를 예시 내용으로 재구성한 검토용 HTML입니다. 메일 발송은 하지 않았습니다.</p>
+
+    <div class="canvas">
+      <div class="topbar">
+        <p class="brand">SK Telecom Newsroom</p>
+        <p class="brand-sub">SKT 로밍팀 Daily Intelligence Report</p>
+      </div>
+
+      <div class="hero">
+        <p class="eyebrow">Daily Intelligence</p>
+        <table class="hero-grid" role="presentation">
+          <tr>
+            <td>
+              <h1 class="hero-title">SKT 로밍팀 일일 뉴스 리포트</h1>
+            </td>
+            <td class="hero-meta">
+              2026년 04월 09일 (목)<br>
+              예시 데이터 프리뷰
+            </td>
+          </tr>
+        </table>
+        <div class="hero-divider"></div>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <span class="section-kicker">Executive Summary</span>
+          <div class="summary-panel">
+            <h2 class="section-header">오늘의 3줄 요약</h2>
+            <ol class="summary-list">
+              <li>travel eSIM과 5G SA roaming 이슈가 동시에 커지면서 로밍 경쟁의 기준이 가격보다 활성화 속도와 품질 관리로 이동하고 있습니다.</li>
+              <li>국내 사업자는 시즌성 프로모션보다 즉시 개통 경험, 신뢰도, travel eSIM 대비 차별 메시지를 더 선명하게 가져갈 필요가 있습니다.</li>
+              <li>메일에서는 핵심 분석 카드와 카테고리 2열 구성을 통해 전체 흐름을 더 빠르게 훑을 수 있도록 정리했습니다.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="section-kicker">Core Signals</span>
+          <table class="insight-grid" role="presentation">
+            <tr>
+              <td class="metric-card">
+                <p class="metric-label">Strategic Insight</p>
+                <h3 class="metric-title">전략 인사이트</h3>
+                <p class="metric-copy">통신사 로밍은 단순 데이터 번들보다 activation speed, quality assurance, 혜택 설계까지 포함한 경험 상품으로 재정의되는 중입니다.</p>
+              </td>
+              <td class="metric-card">
+                <p class="metric-label">Key Findings</p>
+                <h3 class="metric-title">주요 발견</h3>
+                <ul class="metric-list">
+                  <li>5G SA roaming 상용 연결 사례 증가</li>
+                  <li>travel eSIM의 self-serve UX 강화</li>
+                  <li>품질 가시성이 새 경쟁 포인트로 부상</li>
+                </ul>
+              </td>
+              <td class="metric-card">
+                <p class="metric-label">Action</p>
+                <h3 class="metric-title">행동 권고</h3>
+                <ul class="metric-list">
+                  <li>baro 차별 메시지 재정의</li>
+                  <li>공항 개통 경험 점검</li>
+                  <li>경쟁사 UX 비교 추적</li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <span class="section-kicker">Category View</span>
+          <h2 class="section-header">카테고리별 뉴스 구성</h2>
+          <table class="category-grid" role="presentation">
+            <tr>
+              <td class="category-cell">
+                <div class="category-shell">
+                  <div class="category-head">
+                    <p class="category-index">Category 01</p>
+                    <p class="category-title">Market &amp; Culture <span class="category-count">(2건)</span></p>
+                  </div>
+                  <div class="category-body">
+                    <div class="article">
+                      <p class="article-meta">시장 환경 | Telecoms.com</p>
+                      <p class="article-title">travel eSIM 시장이 빠르게 커지며 여행 연결의 기본 옵션으로 부상</p>
+                      <p class="article-copy">여행 수요 증가와 함께 eSIM이 로밍 대체재를 넘어 기본 선택지로 자리 잡는 흐름을 보여줍니다.</p>
+                      <a class="article-link" href="https://www.telecoms.com/esim/travel-esim-market-forecasted-to-grow-85-this-year">원문 보기</a>
+                    </div>
+                    <div class="article last">
+                      <p class="article-meta">여행 시즌 | SKT Newsroom</p>
+                      <p class="article-title">연말 해외 여행 시즌을 겨냥한 SKT 로밍 혜택 강화 사례</p>
+                      <p class="article-copy">여행 수요와 로밍 상품 메시지를 연결하는 시즌성 운영 포인트를 확인할 수 있습니다.</p>
+                      <a class="article-link" href="https://news.sktelecom.com/208697">원문 보기</a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="category-cell">
+                <div class="category-shell">
+                  <div class="category-head">
+                    <p class="category-index">Category 02</p>
+                    <p class="category-title">Global Roaming Trend <span class="category-count">(2건)</span></p>
+                  </div>
+                  <div class="category-body">
+                    <div class="article">
+                      <p class="article-meta">Ericsson | 5G SA Roaming</p>
+                      <p class="article-title">Vodafone Germany와 A1 Bulgaria의 5G SA 국제 로밍 연결 공개</p>
+                      <p class="article-copy">고품질 roaming 상용화 기대를 키우는 대표 사례로, enterprise 품질 경쟁과도 연결됩니다.</p>
+                      <a class="article-link" href="https://www.ericsson.com/en/press-releases/3/2025/vodafone-a1-group-and-ericsson-establish-world-first-5g-standalone-international-roaming-connection-between-two-operator-groups">원문 보기</a>
+                    </div>
+                    <div class="article last">
+                      <p class="article-meta">Ericsson | Native 5G</p>
+                      <p class="article-title">VTel Wireless의 5G SA VoNR roaming 발표</p>
+                      <p class="article-copy">LTE 언더레이 없이 음성까지 처리하는 5G roaming 사례로 기술 전환 흐름이 뚜렷합니다.</p>
+                      <a class="article-link" href="https://www.ericsson.com/es/press-releases/6/2026/vtel-wireless">원문 보기</a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="category-cell">
+                <div class="category-shell">
+                  <div class="category-head">
+                    <p class="category-index">Category 03</p>
+                    <p class="category-title">SKT &amp; Competitors <span class="category-count">(2건)</span></p>
+                  </div>
+                  <div class="category-body">
+                    <div class="article">
+                      <p class="article-meta">SKT</p>
+                      <p class="article-title">첫 로밍 고객 대상 baro 데이터 혜택 강화</p>
+                      <p class="article-copy">휴면 고객을 다시 유입시키는 방식으로, 가격보다 체감 혜택을 먼저 내세우는 전략입니다.</p>
+                      <a class="article-link" href="https://news.sktelecom.com/208697">원문 보기</a>
+                    </div>
+                    <div class="article last">
+                      <p class="article-meta">LG U+</p>
+                      <p class="article-title">한국 방문자용 5G eSIM 상품 운영과 travel 문맥 강조</p>
+                      <p class="article-copy">설치성과 여행 동선 중심의 설명 방식이 경쟁 비교 포인트로 보입니다.</p>
+                      <a class="article-link" href="https://www.lguplus.com/korea-sim/kor/mobile/support/blog/korea_travel_esim">원문 보기</a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="category-cell">
+                <div class="category-shell">
+                  <div class="category-head">
+                    <p class="category-index">Category 04</p>
+                    <p class="category-title">eSIM Products <span class="category-count">(2건)</span></p>
+                  </div>
+                  <div class="category-body">
+                    <div class="article">
+                      <p class="article-meta">Airalo</p>
+                      <p class="article-title">Airalo for Business의 self-purchase 기능 공개</p>
+                      <p class="article-copy">출장자 개인 결제와 기업 관리 기능을 동시에 묶으며 B2B 확장 흐름을 보여줍니다.</p>
+                      <a class="article-link" href="https://www.prnewswire.com/apac/news-releases/airalo-simplifies-corporate-travel-with-industry-first-self-purchase-feature-302722149.html">원문 보기</a>
+                    </div>
+                    <div class="article last">
+                      <p class="article-meta">DT One</p>
+                      <p class="article-title">Grab Indonesia 앱 내부에 Tunz eSIM 통합</p>
+                      <p class="article-copy">독립 앱을 넘어 super app 안으로 eSIM 구매가 들어가는 흐름을 보여주는 사례입니다.</p>
+                      <a class="article-link" href="https://www.prnewswire.com/apac/news-releases/dt-one-launches-tunz-esim-on-grab-indonesia-making-global-mobile-connectivity-instant-for-travellers-302664862.html">원문 보기</a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="category-cell">
+                <div class="category-shell">
+                  <div class="category-head">
+                    <p class="category-index">Category 05</p>
+                    <p class="category-title">로밍 VoC <span class="category-count">(2건)</span></p>
+                  </div>
+                  <div class="category-body">
+                    <div class="article">
+                      <p class="article-meta">예시 VoC</p>
+                      <p class="article-title">공항에서 바로 켜지는지와 속도 체감이 만족도를 좌우</p>
+                      <p class="article-copy">실제 VoC 영역은 정식 수집 시 블로그/카페 데이터로 채울 예정이며, 현재는 구성 검토용 예시 문구를 넣었습니다.</p>
+                      <a class="article-link" href="#">원문 보기</a>
+                    </div>
+                    <div class="article last">
+                      <p class="article-meta">예시 VoC</p>
+                      <p class="article-title">요금은 비슷해도 개통 실패 경험이 있으면 재구매가 급감</p>
+                      <p class="article-copy">VoC는 상품 품질보다 activation friction을 먼저 드러내는 섹션으로 쓰는 편이 유효합니다.</p>
+                      <a class="article-link" href="#">원문 보기</a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="category-cell">
+                <div class="category-shell">
+                  <div class="category-head">
+                    <p class="category-index">Category 06</p>
+                    <p class="category-title">eSIM VoC <span class="category-count">(2건)</span></p>
+                  </div>
+                  <div class="category-body">
+                    <div class="article">
+                      <p class="article-meta">예시 VoC</p>
+                      <p class="article-title">QR 설치는 쉽지만 프로파일 재다운로드 정책이 혼란 포인트</p>
+                      <p class="article-copy">사용자는 기술보다 재설치 가능 여부와 고객지원 응답 속도를 더 민감하게 평가하는 경향이 있습니다.</p>
+                      <a class="article-link" href="#">원문 보기</a>
+                    </div>
+                    <div class="article last">
+                      <p class="article-meta">예시 VoC</p>
+                      <p class="article-title">앱 내 구매부터 개통까지 한 번에 끝나는 흐름에 대한 선호가 높음</p>
+                      <p class="article-copy">eSIM VoC는 UI/UX와 설정 실패율에 대한 평가가 집중되는 구조라 별도 추적 가치가 큽니다.</p>
+                      <a class="article-link" href="#">원문 보기</a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer">
+        SK Telecom Roaming Team<br>
+        Drafted for review only · No email sent
+      </div>
+    </div>
+  </div>
+</body>
+</html>

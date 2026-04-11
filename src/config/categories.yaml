@@ -1,0 +1,279 @@
+# 카테고리 및 키워드 설정
+
+categories:
+  market_culture:
+    id: 0
+    name: "Market & Culture (Macro)"
+    content_type: "news"
+    sources: ["naver_news", "naver_blog"]
+    keywords:
+      - "일본 여행"
+      - "중국 여행"
+      - "베트남 여행"
+      - "필리핀 여행"
+      - "한국 여행"
+      - "케이팝"
+      - "K-POP"
+      - "한류"
+      - "출국자수"
+      - "입국자수"
+      - "출입국자수"
+      - "출국자 동향"
+      - "입국자 동향"
+      - "해외 여행객수"
+    include_keywords:
+      - "여행"
+      - "관광"
+      - "출국"
+      - "입국"
+      - "해외"
+    match_field: "combined"
+    exclude_keywords: []
+
+  global_trend:
+    id: 1
+    name: "Global Roaming Trend"
+    content_type: "news"
+    sources: ["google_search"]
+    keywords:
+      - "roaming business"
+      - "global eSIM industry"
+      - "travel connectivity market"
+      - "travel eSIM trends 2026"
+      - "roaming market outlook"
+      - "MVNO roaming services"
+      - "5G SA roaming"
+      - "satellite cellular convergence"
+      - "SGP.32 eSIM"
+      - "Starlink roaming"
+    include_keywords:
+      - "roaming"
+      - "esim"
+      - "connectivity"
+      - "telecom"
+      - "telco"
+      - "mobile"
+      - "carrier"
+      - "network"
+      - "travel esim"
+      - "mvno"
+      - "subscriber"
+      - "cellular"
+      - "satellite"
+      - "sgp.32"
+    match_field: "combined"
+    exclude_keywords:
+      - "dog"
+      - "dogs"
+      - "pet"
+      - "pets"
+      - "neighborhood"
+      - "truck stop"
+      - "gas station"
+
+  competitors:
+    id: 2
+    name: "SKT & Competitors"
+    content_type: "news"
+    sources: ["naver_news"]
+    keywords:
+      - "SKT 로밍"
+      - "SKT 로밍 요금제"
+      - "KT 로밍"
+      - "KT 데이터 로밍"
+      - "KT 로밍 요금제"
+      - "LGU+ 로밍"
+      - "LG유플러스 로밍"
+      - "LGU+ 데이터 로밍"
+      - "LGU+ 로밍 요금제"
+      - "SKT 바로 로밍"
+    include_keywords:
+      - "로밍"
+      - "데이터 로밍"
+      - "로밍 요금제"
+      - "바로 로밍"
+      - "baro 로밍"
+    match_field: "title"
+    exclude_keywords: []
+
+  esim_industry:
+    id: 3
+    name: "eSIM Industry"
+    content_type: "news"
+    sources: ["naver_news"]
+    keywords:
+      - "유심사"
+      - "유심사 eSIM"
+      - "말톡"
+      - "말톡 eSIM"
+      - "핀다이렉트"
+      - "핀다이렉트 eSIM"
+      - "도시락 eSIM"
+      - "도시락eSIM"
+      - "로밍 도깨비"
+      - "로밍도깨비"
+      - "에어알로"
+      - "Airalo"
+      - "Airalo eSIM"
+    include_keywords:
+      - "esim"
+      - "eSIM"
+      - "이심"
+      - "해외 데이터"
+      - "여행 통신"
+      - "로밍"
+    match_field: "title"
+    exclude_keywords: []
+
+  voc_roaming:
+    id: 4
+    name: "로밍 VoC"
+    content_type: "voc"
+    sources: ["naver_blog", "naver_cafe"]
+    keywords:
+      - "로밍 후기"
+      - "로밍 리뷰"
+      - "로밍 추천"
+      - "로밍 재구매"
+      - "SKT 로밍 후기"
+      - "SKT 로밍 리뷰"
+      - "SKT 로밍 추천"
+      - "KT 로밍 후기"
+      - "KT 로밍 리뷰"
+      - "KT 로밍 추천"
+      - "LGU+ 로밍 후기"
+      - "LGU+ 로밍 리뷰"
+      - "LGU+ 로밍 추천"
+      - "LG유플러스 로밍 후기"
+      - "LG유플러스 로밍 리뷰"
+      - "LG유플러스 로밍 추천"
+      - "데이터 로밍 후기"
+      - "로밍 요금제 후기"
+    include_keywords:
+      - "로밍"
+      - "데이터 로밍"
+      - "로밍 요금제"
+      - "해외 로밍"
+      - "통화 로밍"
+      - "baro 로밍"
+      - "SKT 로밍"
+      - "KT 로밍"
+      - "LGU+ 로밍"
+      - "LG유플러스 로밍"
+    match_field: "title"
+    exclude_keywords: []
+
+  voc_esim:
+    id: 5
+    name: "eSIM VoC"
+    content_type: "voc"
+    sources: ["naver_blog", "naver_cafe"]
+    keywords:
+      - "도시락 eSIM후기"
+      - "도시락eSIM 리뷰"
+      - "도시락eSIM 추천"
+      - "말톡 후기"
+      - "말톡 리뷰"
+      - "말톡 추천"
+      - "유심사 후기"
+      - "유심사 리뷰"
+      - "이지이심 후기"
+      - "이지이심 리뷰"
+      - "eSIM 후기"
+      - "eSIM 리뷰"
+      - "eSIM 추천"
+      - "eSIM 재구매"
+      - "로밍도깨비 후기"
+      - "로밍도깨비 추천"
+      - "핀다이렉트 eSIM후기"
+      - "핀다이렉트 eSIM 추천"
+      - "에어알로 후기"
+      - "에어알로 리뷰"
+      - "Airalo 후기"
+      - "Airalo 리뷰"
+    include_keywords:
+      - "eSIM"
+      - "esim"
+      - "이심"
+      - "유심사"
+      - "도시락 eSIM"
+      - "도시락eSIM"
+      - "말톡"
+      - "에어알로"
+      - "Airalo"
+      - "로밍도깨비"
+      - "로밍 도깨비"
+      - "핀다이렉트 eSIM"
+      - "로밍도깨비 eSIM"
+    match_field: "title"
+    exclude_keywords: []
+
+# 필터링 설정
+filters:
+  blacklist_domains:
+    - "list.php"
+    - "search"
+    - "category"
+    - "tag"
+    - "bbs/board.php"
+    - "main.php"
+    - "/index"
+    - "view_all"
+    - "login"
+    - "deal"
+    - "promo"
+    - "membership"
+    - "profile"
+    - "attendance"
+
+  excluded_keywords:
+    # 게임 차단
+    - "game"
+    - "게임"
+    - "게이밍"
+    - "롤"
+    - "LoL"
+    - "배그"
+    - "RPG"
+    - "MMORPG"
+    - "서버 로밍"
+    - "Zone"
+    - "리그오브레전드"
+    - "PUBG"
+    - "아이템"
+    - "서버이동"
+    - "던파"
+    - "메이플"
+    # 금융/광고 차단
+    - "트래블로그"
+    - "트래블월렛"
+    - "환전"
+    - "수수료"
+    - "이벤트"
+    - "광고"
+    - "지급"
+    - "쿠폰"
+    - "당첨"
+    - "사전예약"
+    - "카드"
+    - "적금"
+
+  global_trend:
+    excluded_domains:
+      - "facebook.com"
+      - "instagram.com"
+      - "x.com"
+      - "twitter.com"
+      - "pilotcompany.com"
+      - "destinationtravelnetwork.com"
+      - "travelleadersnetwork.com"
+      - "adventuretravel.biz"
+    excluded_url_patterns:
+      - "/groups/"
+      - "/support/"
+      - "/help/"
+      - "/faq"
+      - "/categories/"
+      - "/plans-devices/"
+    excluded_keywords: []
+    required_keywords: []
