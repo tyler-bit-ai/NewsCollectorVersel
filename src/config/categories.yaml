@@ -3,6 +3,7 @@
 categories:
   market_culture:
     id: 0
+    priority: 5
     name: "Market & Culture (Macro)"
     content_type: "news"
     sources: ["naver_news", "naver_blog"]
@@ -32,6 +33,7 @@ categories:
 
   global_trend:
     id: 1
+    priority: 4
     name: "Global Roaming Trend"
     content_type: "news"
     sources: ["google_search"]
@@ -61,7 +63,7 @@ categories:
       - "cellular"
       - "satellite"
       - "sgp.32"
-    match_field: "combined"
+    match_field: "content"
     exclude_keywords:
       - "dog"
       - "dogs"
@@ -73,6 +75,7 @@ categories:
 
   competitors:
     id: 2
+    priority: 2
     name: "SKT & Competitors"
     content_type: "news"
     sources: ["naver_news"]
@@ -83,6 +86,7 @@ categories:
       - "KT 데이터 로밍"
       - "KT 로밍 요금제"
       - "LGU+ 로밍"
+      - "유플러스 로밍"
       - "LG유플러스 로밍"
       - "LGU+ 데이터 로밍"
       - "LGU+ 로밍 요금제"
@@ -98,35 +102,55 @@ categories:
 
   esim_industry:
     id: 3
+    priority: 3
     name: "eSIM Industry"
     content_type: "news"
     sources: ["naver_news"]
     keywords:
       - "유심사"
-      - "유심사 eSIM"
       - "말톡"
-      - "말톡 eSIM"
       - "핀다이렉트"
-      - "핀다이렉트 eSIM"
-      - "도시락 eSIM"
-      - "도시락eSIM"
       - "로밍 도깨비"
       - "로밍도깨비"
       - "에어알로"
       - "Airalo"
-      - "Airalo eSIM"
-    include_keywords:
-      - "esim"
-      - "eSIM"
-      - "이심"
-      - "해외 데이터"
-      - "여행 통신"
-      - "로밍"
-    match_field: "title"
+      - "도시락"
+      - "도시락 eSIM"
+      - "도시락eSIM"
+      - "도시락 프로모션"
+      - "도시락 이벤트"
+    brand_keywords:
+      - "유심사"
+      - "말톡"
+      - "핀다이렉트"
+      - "로밍도깨비"
+      - "로밍 도깨비"
+      - "에어알로"
+      - "Airalo"
+    guarded_brand_keywords:
+      도시락:
+        - "로밍"
+        - "eSIM"
+        - "esim"
+        - "이심"
+        - "데이터"
+        - "프로모션"
+        - "이벤트"
+    allow_global_excluded_keywords:
+      - "이벤트"
+      - "광고"
+      - "지급"
+      - "쿠폰"
+      - "당첨"
+    allow_blacklist_domains:
+      - "promo"
+    include_keywords: []
+    match_field: "combined"
     exclude_keywords: []
 
   voc_roaming:
     id: 4
+    priority: 0
     name: "로밍 VoC"
     content_type: "voc"
     sources: ["naver_blog", "naver_cafe"]
@@ -165,6 +189,7 @@ categories:
 
   voc_esim:
     id: 5
+    priority: 1
     name: "eSIM VoC"
     content_type: "voc"
     sources: ["naver_blog", "naver_cafe"]

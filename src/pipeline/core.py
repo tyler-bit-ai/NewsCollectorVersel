@@ -22,6 +22,11 @@ from src.utils.time_windows import get_collection_window_kst
 logger = logging.getLogger("news_collector")
 
 CONFIG_DIR = Path(__file__).resolve().parents[1] / "config"
+PUBLISHED_CONFIDENCE_ORDER = {
+    "exact": 2,
+    "date_only": 1,
+    "missing": 0,
+}
 
 
 def load_categories(config_path: Path | None = None) -> Dict:
@@ -66,9 +71,12 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         global_trend_rules=filters_config.get("global_trend", {}),
         category_rules=categories,
     )
-    deduplicator = Deduplicator()
 
     collected_data: Dict[str, List[Dict]] = {}
+    category_priority = {
+        key: config.get("priority", config.get("id", 99))
+        for key, config in categories.items()
+    }
 
     for category_key, category_config in categories.items():
         logger.info("[%s] %s", category_config["id"], category_config["name"])
@@ -113,11 +121,16 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         category_articles = keyword_filter.filter_articles(
             category_articles, category=category_key
         )
+        deduplicator = Deduplicator()
         category_articles = deduplicator.deduplicate_within_category(category_articles)
         category_articles = sorted(
             category_articles,
             key=lambda article: (
                 int(article.get("relevance_score", 0)),
+                PUBLISHED_CONFIDENCE_ORDER.get(
+                    str(article.get("published_confidence", "missing")),
+                    0,
+                ),
                 article.get("published") is not None,
                 article.get("published"),
             ),
@@ -126,6 +139,7 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
 
         for article in category_articles:
             article["category"] = category_key
+            article["category_priority"] = category_priority.get(category_key, 99)
             article["content_type"] = category_config.get(
                 "content_type",
                 "voc" if category_key.startswith("voc_") else "news",
@@ -135,14 +149,6 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         logger.info("  Collected: %s articles", len(category_articles))
 
     logger.info("[Deduplicating across categories...]")
-    priority_order = {
-        "voc_roaming": 0,
-        "voc_esim": 1,
-        "competitors": 2,
-        "esim_industry": 3,
-        "global_trend": 4,
-        "market_culture": 5,
-    }
     all_articles = sorted(
         (
             article
@@ -150,7 +156,7 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
             for article in category_articles
         ),
         key=lambda article: (
-            priority_order.get(article.get("category", ""), 99),
+            int(article.get("category_priority", 99)),
             -int(article.get("relevance_score", 0)),
         ),
     )

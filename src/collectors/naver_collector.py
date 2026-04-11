@@ -101,7 +101,7 @@ class NaverCollector(BaseCollector):
                 return []
 
             data = response.json()
-            return self._parse_items(data.get('items', []), endpoint)
+            return self._parse_items(data.get('items', []), endpoint, query)
 
         except requests.exceptions.Timeout:
             logger.error(f"Naver API timeout: {query}")
@@ -113,7 +113,7 @@ class NaverCollector(BaseCollector):
             logger.error(f"Naver API exception: {e}")
             return []
 
-    def _parse_items(self, items: List[Dict], endpoint: str) -> List[Dict]:
+    def _parse_items(self, items: List[Dict], endpoint: str, query: str) -> List[Dict]:
         """API 응답 파싱"""
         parsed_articles = []
 
@@ -126,10 +126,12 @@ class NaverCollector(BaseCollector):
                 raw_date = item.get('postdate')
                 if not raw_date:
                     logger.warning(f"Missing postdate for item: {item.get('link', 'unknown')}")
-                    continue
-                pub_date = datetime.strptime(raw_date, "%Y%m%d")
-                pub_date = pub_date.replace(tzinfo=timezone.utc)
-                published_confidence = "date_only"
+                    pub_date = None
+                    published_confidence = "missing"
+                else:
+                    pub_date = datetime.strptime(raw_date, "%Y%m%d")
+                    pub_date = pub_date.replace(tzinfo=timezone.utc)
+                    published_confidence = "date_only"
 
             # 링크 정제
             clean_link = self._clean_naver_link(item.get('link', ''), endpoint)
@@ -141,6 +143,7 @@ class NaverCollector(BaseCollector):
                 'source': f"Naver {endpoint.capitalize()}",
                 'published': pub_date,
                 'published_confidence': published_confidence,
+                'query': query,
                 'type': 'domestic'
             }
 

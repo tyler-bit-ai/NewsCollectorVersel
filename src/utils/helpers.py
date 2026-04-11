@@ -2,6 +2,7 @@
 유틸리티 헬퍼 함수
 """
 import re
+from urllib.parse import urlparse, urlunparse
 from typing import Dict, Tuple
 
 
@@ -43,6 +44,34 @@ def normalize_title(title: str) -> str:
             .replace('</b>', '')
             .replace('&quot;', '')
             .lower())
+
+
+def canonicalize_link(link: str) -> str:
+    """중복 제거용 URL 정규화."""
+    raw_link = str(link or "").strip()
+    if not raw_link:
+        return ""
+
+    parsed = urlparse(raw_link)
+    hostname = (parsed.netloc or "").lower()
+    if hostname in {"n.news.naver.com", "news.naver.com"}:
+        hostname = "news.naver.com"
+    if hostname in {"m.blog.naver.com", "blog.naver.com"}:
+        hostname = "blog.naver.com"
+    if hostname in {"m.cafe.naver.com", "cafe.naver.com"}:
+        hostname = "cafe.naver.com"
+
+    normalized_path = (parsed.path or "").rstrip("/")
+    return urlunparse(
+        (
+            (parsed.scheme or "https").lower(),
+            hostname,
+            normalized_path,
+            "",
+            "",
+            "",
+        )
+    )
 
 
 def contains_ascii_alpha(text: str) -> bool:

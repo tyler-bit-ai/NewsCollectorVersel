@@ -1,8 +1,9 @@
 """
 키워드 필터링 (스팸, 광고, 게임)
 """
-from typing import Dict, List, Optional, Set, Tuple
 import logging
+import re
+from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +106,24 @@ class KeywordFilter:
         )
         self.category_rules: Dict[str, Dict] = category_rules or {}
 
+    def _is_allowed_global_excluded_keyword(self, category: str, keyword: str) -> bool:
+        rule = self.category_rules.get(category) or {}
+        allowed_keywords = {
+            str(value).lower()
+            for value in rule.get("allow_global_excluded_keywords", [])
+            if str(value).strip()
+        }
+        return str(keyword or "").lower() in allowed_keywords
+
+    def _is_allowed_blacklist_domain(self, category: str, blocked_value: str) -> bool:
+        rule = self.category_rules.get(category) or {}
+        allowed_values = {
+            str(value).lower()
+            for value in rule.get("allow_blacklist_domains", [])
+            if str(value).strip()
+        }
+        return str(blocked_value or "").lower() in allowed_values
+
     def _build_text_map(self, article: Dict) -> Dict[str, str]:
         title = str(article.get("title", "")).lower()
         snippet = str(article.get("snippet", "")).lower()
@@ -112,15 +131,31 @@ class KeywordFilter:
         return {
             "title": title,
             "snippet": snippet,
+            "content": f"{title} {snippet}".strip(),
             "query": query,
             "combined": f"{title} {snippet} {query}".strip(),
         }
 
+    def _keyword_matches(self, text: str, keyword: str) -> bool:
+        normalized_text = str(text or "").lower()
+        normalized_keyword = str(keyword or "").strip().lower()
+        if not normalized_text or not normalized_keyword:
+            return False
+
+        escaped = re.escape(normalized_keyword)
+        pattern = rf"(?<![0-9a-zA-Z가-힣]){escaped}(?![0-9a-zA-Z가-힣])"
+        return re.search(pattern, normalized_text) is not None
+
     def _extract_matches(self, combined_text: str, keywords: Set[str]) -> List[str]:
-        return sorted(keyword for keyword in keywords if keyword.lower() in combined_text)
+        return sorted(
+            keyword for keyword in keywords if self._keyword_matches(combined_text, keyword)
+        )
 
     def _apply_category_rule(self, article: Dict, category: str, text_map: Dict[str, str]) -> bool:
         rule = self.category_rules.get(category) or {}
+        if category == "esim_industry":
+            return self._apply_esim_industry_rule(article, text_map, rule)
+
         include_keywords = {
             value.lower() for value in rule.get("include_keywords", []) if str(value).strip()
         }
@@ -146,11 +181,55 @@ class KeywordFilter:
         article["matched_exclude_keywords"] = []
         return True
 
+    def _apply_esim_industry_rule(self, article: Dict, text_map: Dict[str, str], rule: Dict) -> bool:
+        combined_text = text_map["combined"]
+        brand_keywords = {
+            str(value).lower()
+            for value in rule.get("brand_keywords", [])
+            if str(value).strip()
+        }
+        guarded_brand_keywords = {
+            str(key).lower(): [
+                str(value).lower() for value in values if str(value).strip()
+            ]
+            for key, values in (rule.get("guarded_brand_keywords", {}) or {}).items()
+        }
+
+        matched_brands = self._extract_matches(combined_text, brand_keywords)
+        if matched_brands:
+            article["matched_include_keywords"] = matched_brands
+            article["matched_exclude_keywords"] = []
+            article["relevance_reason"] = "esim_industry_brand_match"
+            return True
+
+        for guarded_brand, companion_keywords in guarded_brand_keywords.items():
+            if not self._keyword_matches(combined_text, guarded_brand):
+                continue
+            matched_companions = [
+                keyword
+                for keyword in companion_keywords
+                if self._keyword_matches(combined_text, keyword)
+            ]
+            if matched_companions:
+                article["matched_include_keywords"] = [guarded_brand, *matched_companions]
+                article["matched_exclude_keywords"] = []
+                article["relevance_reason"] = "esim_industry_guarded_brand_match"
+                return True
+
+        article["matched_include_keywords"] = []
+        article["relevance_reason"] = "missing_esim_industry_brand_keywords"
+        return False
+
     def _classify_voc(self, article: Dict, text_map: Dict[str, str]) -> Tuple[Optional[str], List[str]]:
         title_text = text_map["title"]
+        content_text = text_map["content"]
         combined_text = text_map["combined"]
 
         matched_voc = self._extract_matches(title_text, self.VOC_KEYWORDS)
+        if not matched_voc:
+            matched_voc = self._extract_matches(content_text, self.VOC_KEYWORDS)
+        if not matched_voc:
+            matched_voc = self._extract_matches(combined_text, self.VOC_KEYWORDS)
         if not matched_voc:
             return None, []
 
@@ -193,9 +272,9 @@ class KeywordFilter:
             return "voc_roaming", signals
         return None, signals
 
-    def _validate_global_trend(self, article: Dict) -> bool:
+    def _validate_global_trend(self, article: Dict, text_map: Dict[str, str]) -> bool:
         link = str(article.get('link', '')).lower()
-        combined_text = self._build_text_map(article)["combined"]
+        combined_text = text_map["content"]
         source_domain = str(article.get('source_domain', '')).lower()
         title = str(article.get('title', '')).lower()
 
@@ -242,25 +321,35 @@ class KeywordFilter:
                 return False
 
         # 2. 블랙리스트 도메인
-        if any(blocked in link for blocked in self.blacklist_domains):
+        if any(
+            blocked in link
+            for blocked in self.blacklist_domains
+            if not self._is_allowed_blacklist_domain(category, blocked)
+        ):
             logger.debug(f"Filtered: URL blacklist - {title[:50]}")
             return False
 
         # 3. 제외 키워드 (제목 + 요약)
         for bad_word in self.excluded_keywords:
-            if bad_word in combined_text:
+            if self._is_allowed_global_excluded_keyword(category, bad_word):
+                continue
+            if self._keyword_matches(combined_text, bad_word):
                 logger.debug(f"Filtered: Keyword '{bad_word}' - {title[:50]}")
                 return False
 
         # 4. URL에 포함된 키워드
-        if any(bad_word in link.lower() for bad_word in self.excluded_keywords):
+        if any(
+            bad_word in link.lower()
+            for bad_word in self.excluded_keywords
+            if not self._is_allowed_global_excluded_keyword(category, bad_word)
+        ):
             logger.debug(f"Filtered: Link keyword - {title[:50]}")
             return False
 
         if not self._apply_category_rule(article, category, text_map):
             return False
 
-        if category == "global_trend" and not self._validate_global_trend(article):
+        if category == "global_trend" and not self._validate_global_trend(article, text_map):
             return False
 
         if category in {"voc_roaming", "voc_esim"}:
@@ -275,9 +364,6 @@ class KeywordFilter:
         else:
             article["relevance_score"] = 50 + len(article.get("matched_include_keywords", []))
             article["relevance_reason"] = article.get("relevance_reason", "category_match")
-
-        if "content_type" not in article:
-            article["content_type"] = "voc" if category.startswith("voc_") else "news"
 
         return True
 
