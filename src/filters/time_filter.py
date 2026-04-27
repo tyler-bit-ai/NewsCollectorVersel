@@ -28,7 +28,7 @@ class TimeFilter:
             return dt.replace(tzinfo=timezone.utc)
         return dt.astimezone(timezone.utc)
 
-    def is_valid(self, pub_date: datetime) -> bool:
+    def is_valid(self, pub_date: datetime, allow_missing_published: bool = True) -> bool:
         """
         24시간 윈도우 내에 있는지 확인
 
@@ -39,7 +39,7 @@ class TimeFilter:
             윈도우 내에 있으면 True
         """
         if not pub_date:
-            return True  # 날짜 파싱 실패 시 포함
+            return allow_missing_published
 
         pub_date = self._normalize_datetime(pub_date)
         if self.end_time is None:
@@ -54,7 +54,11 @@ class TimeFilter:
 
         return is_valid
 
-    def filter_articles(self, articles: List[Dict]) -> List[Dict]:
+    def filter_articles(
+        self,
+        articles: List[Dict],
+        allow_missing_published: bool = True,
+    ) -> List[Dict]:
         """
         기사 리스트 시간 필터링
 
@@ -66,7 +70,10 @@ class TimeFilter:
         """
         filtered = []
         for article in articles:
-            if self.is_valid(article.get('published')):
+            if self.is_valid(
+                article.get('published'),
+                allow_missing_published=allow_missing_published,
+            ):
                 filtered.append(article)
 
         logger.info(f"Time filter: {len(filtered)}/{len(articles)} passed")

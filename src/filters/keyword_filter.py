@@ -36,6 +36,15 @@ class KeywordFilter:
         self.global_trend_required_keywords: Set[str] = set(
             value.lower() for value in rules.get("required_keywords", [])
         )
+        self.global_trend_required_topic_keywords: Set[str] = set(
+            value.lower() for value in rules.get("required_topic_keywords", [])
+        )
+        self.global_trend_required_signal_keywords: Set[str] = set(
+            value.lower() for value in rules.get("required_signal_keywords", [])
+        )
+        self.global_trend_excluded_marketing_keywords: Set[str] = set(
+            value.lower() for value in rules.get("excluded_marketing_keywords", [])
+        )
 
     def _validate_global_trend(self, article: Dict) -> bool:
         link = str(article.get('link', '')).lower()
@@ -57,10 +66,33 @@ class KeywordFilter:
             logger.debug(f"Filtered global_trend by excluded keyword: {title[:50]}")
             return False
 
+        if any(
+            keyword in combined_text
+            for keyword in self.global_trend_excluded_marketing_keywords
+        ):
+            logger.debug(f"Filtered global_trend by marketing keyword: {title[:50]}")
+            return False
+
         if self.global_trend_required_keywords and not any(
             keyword in combined_text for keyword in self.global_trend_required_keywords
         ):
             logger.debug(f"Filtered global_trend by missing required keyword: {title[:50]}")
+            return False
+
+        if self.global_trend_required_topic_keywords and not any(
+            keyword in combined_text for keyword in self.global_trend_required_topic_keywords
+        ):
+            logger.debug(
+                f"Filtered global_trend by missing topic keyword: {title[:50]}"
+            )
+            return False
+
+        if self.global_trend_required_signal_keywords and not any(
+            keyword in combined_text for keyword in self.global_trend_required_signal_keywords
+        ):
+            logger.debug(
+                f"Filtered global_trend by missing news signal keyword: {title[:50]}"
+            )
             return False
 
         return True

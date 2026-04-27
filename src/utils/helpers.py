@@ -3,6 +3,7 @@
 """
 import re
 from typing import Dict, Tuple
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 
 ASCII_ALPHA_PATTERN = re.compile(r"[A-Za-z]")
@@ -43,6 +44,39 @@ def normalize_title(title: str) -> str:
             .replace('</b>', '')
             .replace('&quot;', '')
             .lower())
+
+
+TRACKING_QUERY_PREFIXES = ("utm_", "fbclid", "gclid", "mc_", "mkt_")
+
+
+def normalize_link(link: str) -> str:
+    """
+    URL 정규화 (중복 제거용)
+
+    - scheme/netloc 소문자화
+    - fragment 제거
+    - trailing slash 정리
+    - 추적용 query parameter 제거
+    """
+    raw_link = str(link or "").strip()
+    if not raw_link:
+        return ""
+
+    parsed = urlparse(raw_link)
+    filtered_query = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if not key.lower().startswith(TRACKING_QUERY_PREFIXES)
+    ]
+    normalized_path = parsed.path.rstrip("/") or "/"
+    normalized = parsed._replace(
+        scheme=parsed.scheme.lower(),
+        netloc=parsed.netloc.lower(),
+        path=normalized_path,
+        query=urlencode(filtered_query, doseq=True),
+        fragment="",
+    )
+    return urlunparse(normalized)
 
 
 def contains_ascii_alpha(text: str) -> bool:

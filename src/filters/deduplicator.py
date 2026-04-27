@@ -3,7 +3,7 @@
 """
 from typing import List, Dict
 import logging
-from src.utils.helpers import clean_html, normalize_title
+from src.utils.helpers import clean_html, normalize_link, normalize_title
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class Deduplicator:
         for article in articles:
             # 제목 정규화
             clean_title = normalize_title(article['title'])
-            link = article['link']
+            link = normalize_link(article['link'])
 
             if clean_title in self.seen_titles:
                 continue
@@ -40,6 +40,7 @@ class Deduplicator:
             # HTML 태그 정리
             article['title'] = clean_html(article['title'])
             article['snippet'] = clean_html(article['snippet'])
+            article['link'] = link
 
             unique_articles.append(article)
             self.seen_titles.add(clean_title)
@@ -62,10 +63,11 @@ class Deduplicator:
         unique_articles = []
 
         for article in articles:
-            link = article['link']
+            link = normalize_link(article['link'])
 
             if link not in seen_links:
                 seen_links[link] = True
+                article['link'] = link
                 unique_articles.append(article)
 
         logger.info(f"Cross-category deduplication: {len(unique_articles)} unique")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from datetime import datetime, timezone
 from typing import Dict, List
 
 import yaml
@@ -28,6 +29,17 @@ def load_categories(config_path: Path | None = None) -> Dict:
     path = config_path or (CONFIG_DIR / "categories.yaml")
     with path.open("r", encoding="utf-8") as file:
         return yaml.safe_load(file)
+
+
+def _article_sort_key(article: Dict) -> tuple[int, float, str]:
+    published = article.get("published")
+    if isinstance(published, datetime):
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        timestamp = published.astimezone(timezone.utc).timestamp()
+        return (1, timestamp, str(article.get("title", "")))
+
+    return (0, 0.0, str(article.get("title", "")))
 
 
 def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
@@ -108,11 +120,19 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
                 except Exception as exc:
                     logger.error("    Google Search failed: %s", exc)
 
-        category_articles = time_filter.filter_articles(category_articles)
+        category_articles = time_filter.filter_articles(
+            category_articles,
+            allow_missing_published=(category_key != "global_trend"),
+        )
         category_articles = keyword_filter.filter_articles(
             category_articles, category=category_key
         )
         category_articles = deduplicator.deduplicate_within_category(category_articles)
+        category_articles = sorted(
+            category_articles,
+            key=_article_sort_key,
+            reverse=True,
+        )[: settings.max_articles_per_category]
 
         for article in category_articles:
             article["category"] = category_key
