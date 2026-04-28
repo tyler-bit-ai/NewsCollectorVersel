@@ -1,9 +1,10 @@
 """
 중복 제거 (카테고리 내 + 카테고리 간)
 """
-from typing import List, Dict
+from typing import Dict, List
 import logging
-from src.utils.helpers import clean_html, normalize_link, normalize_title
+
+from src.utils.helpers import canonicalize_link, clean_html, normalize_title
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +29,14 @@ class Deduplicator:
         unique_articles = []
 
         for article in articles:
-            # 제목 정규화
             clean_title = normalize_title(article['title'])
-            link = normalize_link(article['link'])
+            link = canonicalize_link(article['link'])
 
             if clean_title in self.seen_titles:
                 continue
             if link in self.seen_links:
                 continue
 
-            # HTML 태그 정리
             article['title'] = clean_html(article['title'])
             article['snippet'] = clean_html(article['snippet'])
             article['link'] = link
@@ -51,7 +50,7 @@ class Deduplicator:
 
     def deduplicate_cross_categories(self, articles: List[Dict]) -> List[Dict]:
         """
-        카테고리 간 중복 제거 (URL 기반)
+        카테고리 간 중복 제거 (URL + 제목 기반)
 
         Args:
             articles: 기사 리스트
@@ -60,13 +59,16 @@ class Deduplicator:
             중복 제거된 기사 리스트
         """
         seen_links = {}
+        seen_titles = {}
         unique_articles = []
 
         for article in articles:
-            link = normalize_link(article['link'])
+            link = canonicalize_link(article['link'])
+            clean_title = normalize_title(article['title'])
 
-            if link not in seen_links:
+            if link not in seen_links and clean_title not in seen_titles:
                 seen_links[link] = True
+                seen_titles[clean_title] = True
                 article['link'] = link
                 unique_articles.append(article)
 

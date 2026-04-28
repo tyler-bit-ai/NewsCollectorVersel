@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from datetime import datetime, timezone
 from typing import Dict, List
 
 import yaml
@@ -23,23 +22,17 @@ from src.utils.time_windows import get_collection_window_kst
 logger = logging.getLogger("news_collector")
 
 CONFIG_DIR = Path(__file__).resolve().parents[1] / "config"
+PUBLISHED_CONFIDENCE_ORDER = {
+    "exact": 2,
+    "date_only": 1,
+    "missing": 0,
+}
 
 
 def load_categories(config_path: Path | None = None) -> Dict:
     path = config_path or (CONFIG_DIR / "categories.yaml")
     with path.open("r", encoding="utf-8") as file:
         return yaml.safe_load(file)
-
-
-def _article_sort_key(article: Dict) -> tuple[int, float, str]:
-    published = article.get("published")
-    if isinstance(published, datetime):
-        if published.tzinfo is None:
-            published = published.replace(tzinfo=timezone.utc)
-        timestamp = published.astimezone(timezone.utc).timestamp()
-        return (1, timestamp, str(article.get("title", "")))
-
-    return (0, 0.0, str(article.get("title", "")))
 
 
 def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
@@ -57,6 +50,7 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
     )
 
     config = load_categories()
+    categories = config["categories"]
     filters_config = config["filters"]
     window = get_collection_window_kst(window_hours=settings.time_window_hours)
     logger.info(
@@ -75,11 +69,14 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         blacklist_domains=filters_config["blacklist_domains"],
         excluded_keywords=filters_config["excluded_keywords"],
         global_trend_rules=filters_config.get("global_trend", {}),
+        category_rules=categories,
     )
-    deduplicator = Deduplicator()
 
     collected_data: Dict[str, List[Dict]] = {}
-    categories = config["categories"]
+    category_priority = {
+        key: category.get("priority", category.get("id", 99))
+        for key, category in categories.items()
+    }
 
     for category_key, category_config in categories.items():
         logger.info("[%s] %s", category_config["id"], category_config["name"])
@@ -120,35 +117,58 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
                 except Exception as exc:
                     logger.error("    Google Search failed: %s", exc)
 
-        category_articles = time_filter.filter_articles(
-            category_articles,
-            allow_missing_published=(category_key != "global_trend"),
-        )
+        category_articles = time_filter.filter_articles(category_articles)
         category_articles = keyword_filter.filter_articles(
             category_articles, category=category_key
         )
+        deduplicator = Deduplicator()
         category_articles = deduplicator.deduplicate_within_category(category_articles)
         category_articles = sorted(
             category_articles,
-            key=_article_sort_key,
+            key=lambda article: (
+                int(article.get("relevance_score", 0)),
+                PUBLISHED_CONFIDENCE_ORDER.get(
+                    str(article.get("published_confidence", "missing")),
+                    0,
+                ),
+                article.get("published") is not None,
+                article.get("published"),
+            ),
             reverse=True,
         )[: settings.max_articles_per_category]
 
         for article in category_articles:
             article["category"] = category_key
+            article["category_priority"] = category_priority.get(category_key, 99)
+            article["content_type"] = category_config.get(
+                "content_type",
+                "voc" if category_key.startswith("voc_") else "news",
+            )
 
         collected_data[category_key] = category_articles
         logger.info("  Collected: %s articles", len(category_articles))
 
     logger.info("[Deduplicating across categories...]")
-    all_articles = [
-        article for category_articles in collected_data.values() for article in category_articles
-    ]
+    all_articles = sorted(
+        (
+            article
+            for category_articles in collected_data.values()
+            for article in category_articles
+        ),
+        key=lambda article: (
+            int(article.get("category_priority", 99)),
+            -int(article.get("relevance_score", 0)),
+        ),
+    )
     cross_deduplicator = Deduplicator()
     unique_articles = cross_deduplicator.deduplicate_cross_categories(all_articles)
-    logger.info("Total unique articles: %s", len(unique_articles))
 
-    return collected_data
+    deduplicated_data: Dict[str, List[Dict]] = {key: [] for key in categories}
+    for article in unique_articles:
+        deduplicated_data[article["category"]].append(article)
+
+    logger.info("Total unique articles: %s", len(unique_articles))
+    return deduplicated_data
 
 
 def collect_external_alerts(settings: Settings) -> List[Dict]:

@@ -8,6 +8,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 ASCII_ALPHA_PATTERN = re.compile(r"[A-Za-z]")
 KOREAN_CHAR_PATTERN = re.compile(r"[가-힣]")
+TRACKING_QUERY_PREFIXES = ("utm_", "fbclid", "gclid", "mc_", "mkt_")
 GLOBAL_TREND_TITLE_FALLBACK = "해외 로밍 동향 기사(한글 번역 준비중)"
 GLOBAL_TREND_SUMMARY_FALLBACK = "한글 요약 준비중입니다. 원문 링크에서 확인해 주세요."
 
@@ -22,7 +23,7 @@ def clean_html(text: str) -> str:
     Returns:
         정리된 텍스트
     """
-    return (text
+    return (str(text or "")
             .replace('<b>', '')
             .replace('</b>', '')
             .replace('&quot;', '"'))
@@ -38,7 +39,7 @@ def normalize_title(title: str) -> str:
     Returns:
         정규화된 제목
     """
-    return (title
+    return (str(title or "")
             .replace(' ', '')
             .replace('<b>', '')
             .replace('</b>', '')
@@ -46,37 +47,42 @@ def normalize_title(title: str) -> str:
             .lower())
 
 
-TRACKING_QUERY_PREFIXES = ("utm_", "fbclid", "gclid", "mc_", "mkt_")
-
-
-def normalize_link(link: str) -> str:
-    """
-    URL 정규화 (중복 제거용)
-
-    - scheme/netloc 소문자화
-    - fragment 제거
-    - trailing slash 정리
-    - 추적용 query parameter 제거
-    """
+def canonicalize_link(link: str) -> str:
+    """중복 제거용 URL 정규화."""
     raw_link = str(link or "").strip()
     if not raw_link:
         return ""
 
     parsed = urlparse(raw_link)
+    hostname = (parsed.netloc or "").lower()
+    if hostname in {"n.news.naver.com", "news.naver.com"}:
+        hostname = "news.naver.com"
+    if hostname in {"m.blog.naver.com", "blog.naver.com"}:
+        hostname = "blog.naver.com"
+    if hostname in {"m.cafe.naver.com", "cafe.naver.com"}:
+        hostname = "cafe.naver.com"
+
     filtered_query = [
         (key, value)
         for key, value in parse_qsl(parsed.query, keep_blank_values=True)
         if not key.lower().startswith(TRACKING_QUERY_PREFIXES)
     ]
-    normalized_path = parsed.path.rstrip("/") or "/"
-    normalized = parsed._replace(
-        scheme=parsed.scheme.lower(),
-        netloc=parsed.netloc.lower(),
-        path=normalized_path,
-        query=urlencode(filtered_query, doseq=True),
-        fragment="",
+    normalized_path = (parsed.path or "").rstrip("/")
+    return urlunparse(
+        (
+            (parsed.scheme or "https").lower(),
+            hostname,
+            normalized_path,
+            "",
+            urlencode(filtered_query, doseq=True),
+            "",
+        )
     )
-    return urlunparse(normalized)
+
+
+def normalize_link(link: str) -> str:
+    """이전 호출부 호환용 alias."""
+    return canonicalize_link(link)
 
 
 def contains_ascii_alpha(text: str) -> bool:

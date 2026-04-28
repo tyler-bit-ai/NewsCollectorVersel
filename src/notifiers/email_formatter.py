@@ -18,7 +18,7 @@ class EmailFormatter:
         "market_culture": "Market & Culture",
         "global_trend": "Global Roaming Trend",
         "competitors": "SKT & Competitors",
-        "esim_products": "eSIM Products",
+        "esim_industry": "eSIM Industry",
         "voc_roaming": "로밍 VoC",
         "voc_esim": "eSIM VoC",
     }
