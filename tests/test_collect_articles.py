@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import unittest
 from unittest.mock import patch
 
@@ -35,6 +35,10 @@ def build_settings(max_articles_per_category: int = 10) -> Settings:
             cron_secret="secret-token",
         ),
     )
+
+
+def recent_datetime(hours_ago: int = 1) -> datetime:
+    return datetime.now(timezone.utc) - timedelta(hours=hours_ago)
 
 
 class CollectArticlesTests(unittest.TestCase):
@@ -87,14 +91,14 @@ class CollectArticlesTests(unittest.TestCase):
                     "snippet": "로밍 혜택을 강화했다.",
                     "link": "https://example.com/shared",
                     "source": "Naver News",
-                    "published": datetime(2026, 4, 11, 0, 0, tzinfo=timezone.utc),
+                    "published": recent_datetime(1),
                 },
                 {
                     "title": "KT 로밍 데이터 혜택 확대",
                     "snippet": "데이터 로밍 제공량이 늘었다.",
                     "link": "https://example.com/competitors-2",
                     "source": "Naver News",
-                    "published": datetime(2026, 4, 10, 0, 0, tzinfo=timezone.utc),
+                    "published": recent_datetime(2),
                 },
             ],
             [
@@ -103,14 +107,14 @@ class CollectArticlesTests(unittest.TestCase):
                     "snippet": "eSIM 여행 통신 서비스를 확장했다.",
                     "link": "https://example.com/shared",
                     "source": "Naver News",
-                    "published": datetime(2026, 4, 11, 1, 0, tzinfo=timezone.utc),
+                    "published": recent_datetime(1),
                 },
                 {
                     "title": "핀다이렉트 eSIM 제휴 확대",
                     "snippet": "eSIM 시장 확장 기사",
                     "link": "https://example.com/esim-2",
                     "source": "Naver News",
-                    "published": datetime(2026, 4, 10, 1, 0, tzinfo=timezone.utc),
+                    "published": recent_datetime(2),
                 },
             ],
         ]
@@ -175,7 +179,7 @@ class CollectArticlesTests(unittest.TestCase):
                 "snippet": "해외 여행 준비 내용을 정리했다.",
                 "link": "https://example.com/shared",
                 "source": "Naver News",
-                "published": datetime(2026, 4, 11, 0, 0, tzinfo=timezone.utc),
+                "published": recent_datetime(2),
             }
         ]
         mock_collect_blog.return_value = [
@@ -185,7 +189,7 @@ class CollectArticlesTests(unittest.TestCase):
                 "link": "https://example.com/shared",
                 "source": "Naver Blog",
                 "query": "KT 로밍 후기",
-                "published": datetime(2026, 4, 11, 1, 0, tzinfo=timezone.utc),
+                "published": recent_datetime(1),
             }
         ]
 
@@ -246,7 +250,7 @@ class CollectArticlesTests(unittest.TestCase):
                 "link": "https://example.com/date-only",
                 "source": "Naver Blog",
                 "query": "Airalo 후기",
-                "published": datetime(2026, 4, 11, 0, 0, tzinfo=timezone.utc),
+                "published": recent_datetime(1),
                 "published_confidence": "date_only",
             },
         ]

@@ -11,6 +11,38 @@ logger = logging.getLogger(__name__)
 class KeywordFilter:
     """키워드 기반 필터링"""
 
+    KOREAN_PARTICLES: Tuple[str, ...] = (
+        "으로부터",
+        "에서부터",
+        "까지",
+        "부터",
+        "에게",
+        "께서",
+        "에서",
+        "으로",
+        "처럼",
+        "보다",
+        "하고",
+        "이랑",
+        "라도",
+        "마저",
+        "조차",
+        "밖에",
+        "은",
+        "는",
+        "이",
+        "가",
+        "을",
+        "를",
+        "에",
+        "의",
+        "와",
+        "과",
+        "도",
+        "만",
+        "로",
+        "랑",
+    )
     VOC_KEYWORDS: Set[str] = {
         "후기",
         "리뷰",
@@ -104,6 +136,9 @@ class KeywordFilter:
         self.global_trend_required_keywords: Set[str] = set(
             value.lower() for value in rules.get("required_keywords", [])
         )
+        self.global_trend_require_published_date = bool(
+            rules.get("require_published_date", False)
+        )
         self.category_rules: Dict[str, Dict] = category_rules or {}
 
     def _is_allowed_global_excluded_keyword(self, category: str, keyword: str) -> bool:
@@ -143,7 +178,11 @@ class KeywordFilter:
             return False
 
         escaped = re.escape(normalized_keyword)
-        pattern = rf"(?<![0-9a-zA-Z가-힣]){escaped}(?![0-9a-zA-Z가-힣])"
+        particle_suffix = "|".join(re.escape(value) for value in self.KOREAN_PARTICLES)
+        right_boundary = (
+            rf"(?:(?![0-9a-zA-Z가-힣])|(?:{particle_suffix})(?![0-9a-zA-Z가-힣]))"
+        )
+        pattern = rf"(?<![0-9a-zA-Z가-힣]){escaped}{right_boundary}"
         return re.search(pattern, normalized_text) is not None
 
     def _extract_matches(self, combined_text: str, keywords: Set[str]) -> List[str]:
@@ -153,6 +192,8 @@ class KeywordFilter:
 
     def _apply_category_rule(self, article: Dict, category: str, text_map: Dict[str, str]) -> bool:
         rule = self.category_rules.get(category) or {}
+        if category == "market_culture":
+            return self._apply_market_culture_rule(article, text_map, rule)
         if category == "esim_industry":
             return self._apply_esim_industry_rule(article, text_map, rule)
 
@@ -161,6 +202,9 @@ class KeywordFilter:
         }
         exclude_keywords = {
             value.lower() for value in rule.get("exclude_keywords", []) if str(value).strip()
+        }
+        required_keywords = {
+            value.lower() for value in rule.get("required_keywords", []) if str(value).strip()
         }
         match_field = str(rule.get("match_field", "combined")).lower()
         field_text = text_map.get(match_field, text_map["combined"])
@@ -177,12 +221,20 @@ class KeywordFilter:
             article["relevance_reason"] = "missing_category_include_keywords"
             return False
 
+        matched_required = self._extract_matches(field_text, required_keywords)
+        if required_keywords and not matched_required:
+            article["matched_required_keywords"] = []
+            article["relevance_reason"] = "missing_category_required_keywords"
+            return False
+
         article["matched_include_keywords"] = matched_includes
+        article["matched_required_keywords"] = matched_required
         article["matched_exclude_keywords"] = []
         return True
 
     def _apply_esim_industry_rule(self, article: Dict, text_map: Dict[str, str], rule: Dict) -> bool:
-        combined_text = text_map["combined"]
+        match_field = str(rule.get("match_field", "content")).lower()
+        field_text = text_map.get(match_field, text_map["content"])
         brand_keywords = {
             str(value).lower()
             for value in rule.get("brand_keywords", [])
@@ -195,7 +247,7 @@ class KeywordFilter:
             for key, values in (rule.get("guarded_brand_keywords", {}) or {}).items()
         }
 
-        matched_brands = self._extract_matches(combined_text, brand_keywords)
+        matched_brands = self._extract_matches(field_text, brand_keywords)
         if matched_brands:
             article["matched_include_keywords"] = matched_brands
             article["matched_exclude_keywords"] = []
@@ -203,12 +255,12 @@ class KeywordFilter:
             return True
 
         for guarded_brand, companion_keywords in guarded_brand_keywords.items():
-            if not self._keyword_matches(combined_text, guarded_brand):
+            if not self._keyword_matches(field_text, guarded_brand):
                 continue
             matched_companions = [
                 keyword
                 for keyword in companion_keywords
-                if self._keyword_matches(combined_text, keyword)
+                if self._keyword_matches(field_text, keyword)
             ]
             if matched_companions:
                 article["matched_include_keywords"] = [guarded_brand, *matched_companions]
@@ -220,16 +272,94 @@ class KeywordFilter:
         article["relevance_reason"] = "missing_esim_industry_brand_keywords"
         return False
 
+    def _apply_market_culture_rule(self, article: Dict, text_map: Dict[str, str], rule: Dict) -> bool:
+        match_field = str(rule.get("match_field", "content")).lower()
+        field_text = text_map.get(match_field, text_map["content"])
+
+        include_keywords = {
+            str(value).lower()
+            for value in rule.get("include_keywords", [])
+            if str(value).strip()
+        }
+        exclude_keywords = {
+            str(value).lower()
+            for value in rule.get("exclude_keywords", [])
+            if str(value).strip()
+        }
+        topic_keywords = {
+            str(value).lower()
+            for value in rule.get("topic_keywords", [])
+            if str(value).strip()
+        }
+        market_signal_keywords = {
+            str(value).lower()
+            for value in rule.get("market_signal_keywords", [])
+            if str(value).strip()
+        }
+        strong_market_signal_keywords = {
+            str(value).lower()
+            for value in rule.get("strong_market_signal_keywords", [])
+            if str(value).strip()
+        }
+        soft_exclude_keywords = {
+            str(value).lower()
+            for value in rule.get("soft_exclude_keywords", [])
+            if str(value).strip()
+        }
+
+        matched_excludes = self._extract_matches(field_text, exclude_keywords)
+        if matched_excludes:
+            article["matched_exclude_keywords"] = matched_excludes
+            article["relevance_reason"] = f"category_exclude:{','.join(matched_excludes)}"
+            return False
+
+        matched_includes = self._extract_matches(field_text, include_keywords)
+        if include_keywords and not matched_includes:
+            article["matched_include_keywords"] = []
+            article["relevance_reason"] = "missing_category_include_keywords"
+            return False
+
+        matched_topics = self._extract_matches(field_text, topic_keywords)
+        if topic_keywords and not matched_topics:
+            article["matched_topic_keywords"] = []
+            article["relevance_reason"] = "missing_market_culture_topic"
+            return False
+
+        matched_market_signals = self._extract_matches(field_text, market_signal_keywords)
+        if market_signal_keywords and not matched_market_signals:
+            article["matched_market_signal_keywords"] = []
+            article["relevance_reason"] = "missing_market_culture_signal"
+            return False
+
+        matched_soft_excludes = self._extract_matches(field_text, soft_exclude_keywords)
+        matched_strong_market_signals = self._extract_matches(
+            field_text,
+            strong_market_signal_keywords,
+        )
+        if matched_soft_excludes and not matched_strong_market_signals:
+            article["matched_soft_exclude_keywords"] = matched_soft_excludes
+            article["matched_market_signal_keywords"] = matched_market_signals
+            article["relevance_reason"] = (
+                f"market_culture_soft_exclude:{','.join(matched_soft_excludes)}"
+            )
+            return False
+
+        article["matched_include_keywords"] = matched_includes
+        article["matched_required_keywords"] = matched_market_signals
+        article["matched_topic_keywords"] = matched_topics
+        article["matched_market_signal_keywords"] = matched_market_signals
+        article["matched_strong_market_signal_keywords"] = matched_strong_market_signals
+        article["matched_soft_exclude_keywords"] = matched_soft_excludes
+        article["matched_exclude_keywords"] = []
+        return True
+
     def _classify_voc(self, article: Dict, text_map: Dict[str, str]) -> Tuple[Optional[str], List[str]]:
         title_text = text_map["title"]
         content_text = text_map["content"]
-        combined_text = text_map["combined"]
 
         matched_voc = self._extract_matches(title_text, self.VOC_KEYWORDS)
         if not matched_voc:
             matched_voc = self._extract_matches(content_text, self.VOC_KEYWORDS)
-        if not matched_voc:
-            matched_voc = self._extract_matches(combined_text, self.VOC_KEYWORDS)
         if not matched_voc:
             return None, []
 
@@ -241,15 +371,15 @@ class KeywordFilter:
         matched_esim_brands = self._extract_matches(title_text, self.ESIM_BRAND_KEYWORDS)
 
         if not matched_roaming and not matched_esim:
-            matched_roaming = self._extract_matches(combined_text, self.ROAMING_KEYWORDS)
-            matched_esim = self._extract_matches(combined_text, self.ESIM_KEYWORDS)
+            matched_roaming = self._extract_matches(content_text, self.ROAMING_KEYWORDS)
+            matched_esim = self._extract_matches(content_text, self.ESIM_KEYWORDS)
         if not matched_carrier_roaming:
             matched_carrier_roaming = self._extract_matches(
-                combined_text, self.CARRIER_ROAMING_KEYWORDS
+                content_text, self.CARRIER_ROAMING_KEYWORDS
             )
         if not matched_esim_brands:
             matched_esim_brands = self._extract_matches(
-                combined_text, self.ESIM_BRAND_KEYWORDS
+                content_text, self.ESIM_BRAND_KEYWORDS
             )
 
         signals = [
@@ -277,6 +407,10 @@ class KeywordFilter:
         combined_text = text_map["content"]
         source_domain = str(article.get('source_domain', '')).lower()
         title = str(article.get('title', '')).lower()
+
+        if self.global_trend_require_published_date and not article.get("published"):
+            logger.debug(f"Filtered global_trend by missing published date: {title[:50]}")
+            return False
 
         if any(domain in source_domain for domain in self.global_trend_excluded_domains):
             logger.debug(f"Filtered global_trend by domain: {source_domain}")
