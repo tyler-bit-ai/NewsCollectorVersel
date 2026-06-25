@@ -475,8 +475,6 @@ filters:
       - "/products/"
       - "/product/"
       - "/solutions/"
-      - "/our-solutions/"
-      - "/wp-content/"
       - ".pdf"
       - "/groups/"
       - "/support/"

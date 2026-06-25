@@ -49,6 +49,7 @@ class RuntimeSettings:
     dry_run: bool
     enable_0404_alerts: bool
     time_window_hours: int
+    global_trend_window_hours: int
     max_articles_per_category: int
     email_top_n: int
     email_summary_max_chars: int
@@ -76,6 +77,10 @@ class Settings:
     @property
     def time_window_hours(self) -> int:
         return self.runtime.time_window_hours
+
+    @property
+    def global_trend_window_hours(self) -> int:
+        return self.runtime.global_trend_window_hours
 
     @property
     def max_articles_per_category(self) -> int:
@@ -137,6 +142,9 @@ def load_settings() -> Settings:
             dry_run=_parse_bool(os.getenv("DRY_RUN"), False),
             enable_0404_alerts=_parse_bool(os.getenv("ENABLE_0404_ALERTS"), True),
             time_window_hours=int(os.getenv("TIME_WINDOW_HOURS", "24")),
+            global_trend_window_hours=int(
+                os.getenv("GLOBAL_TREND_WINDOW_HOURS", "720")
+            ),
             max_articles_per_category=int(
                 os.getenv("MAX_ARTICLES_PER_CATEGORY", "10")
             ),

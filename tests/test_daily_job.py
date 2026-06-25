@@ -28,6 +28,7 @@ def build_settings() -> Settings:
             dry_run=True,
             enable_0404_alerts=True,
             time_window_hours=24,
+            global_trend_window_hours=720,
             max_articles_per_category=10,
             email_top_n=3,
             email_summary_max_chars=140,

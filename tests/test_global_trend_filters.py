@@ -6,7 +6,7 @@ from src.config.settings import APISettings, EmailSettings, RuntimeSettings, Set
 from src.filters.keyword_filter import KeywordFilter
 from src.filters.time_filter import TimeFilter
 from src.pipeline.core import collect_articles
-from src.utils.time_windows import CollectionWindow
+from src.utils.time_windows import CollectionWindow, get_collection_window_kst
 
 
 def build_settings(max_articles_per_category: int = 10) -> Settings:
@@ -32,6 +32,7 @@ def build_settings(max_articles_per_category: int = 10) -> Settings:
             dry_run=True,
             enable_0404_alerts=False,
             time_window_hours=24,
+            global_trend_window_hours=720,
             max_articles_per_category=max_articles_per_category,
             email_top_n=3,
             email_summary_max_chars=140,
@@ -182,3 +183,24 @@ class CollectArticlesTests(unittest.TestCase):
             collected["global_trend"][0]["link"],
             "https://example.com/news/latest",
         )
+
+
+class CollectionWindowTests(unittest.TestCase):
+    def test_force_rolling_bypasses_monday_special_window(self):
+        # 2024-01-01 00:00 UTC == 09:00 KST, 둘 다 월요일.
+        monday_utc = datetime(2024, 1, 1, 0, 0, tzinfo=timezone.utc)
+
+        rolling = get_collection_window_kst(
+            window_hours=720, now_utc=monday_utc, force_rolling=True
+        )
+        special = get_collection_window_kst(
+            window_hours=720, now_utc=monday_utc, force_rolling=False
+        )
+
+        # force_rolling=True -> 720시간(30일) 롤링 윈도우, 월요일 특수구간 미사용
+        self.assertFalse(rolling.is_monday_special)
+        self.assertEqual(rolling.end_utc, monday_utc)
+        self.assertEqual(rolling.start_utc, monday_utc - timedelta(hours=720))
+
+        # force_rolling=False -> 월요일 특수구간(Fri 09:00 ~ Mon 09:00) 사용
+        self.assertTrue(special.is_monday_special)

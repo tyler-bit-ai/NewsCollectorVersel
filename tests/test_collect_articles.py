@@ -29,6 +29,7 @@ def build_settings(max_articles_per_category: int = 10) -> Settings:
             dry_run=True,
             enable_0404_alerts=False,
             time_window_hours=24,
+            global_trend_window_hours=720,
             max_articles_per_category=max_articles_per_category,
             email_top_n=3,
             email_summary_max_chars=140,
@@ -260,3 +261,58 @@ class CollectArticlesTests(unittest.TestCase):
         self.assertEqual(len(collected["voc_esim"]), 2)
         self.assertEqual(collected["voc_esim"][0]["link"], "https://example.com/date-only")
         self.assertEqual(collected["voc_esim"][1]["link"], "https://example.com/missing-date")
+
+    @patch("src.pipeline.core.load_categories")
+    @patch("src.pipeline.core.GoogleCollector.collect")
+    def test_collect_articles_global_trend_keeps_articles_outside_daily_window(
+        self,
+        mock_collect_google,
+        mock_load_categories,
+    ):
+        """global_trend는 넓은(30일) 롤링 윈도우를 쓰므로 일일(24h) 윈도우 밖 기사도 유지된다."""
+        mock_load_categories.return_value = {
+            "categories": {
+                "global_trend": {
+                    "id": 1,
+                    "name": "Global Roaming Trend",
+                    "content_type": "news",
+                    "sources": ["google_search"],
+                    "keywords": ["5G SA roaming"],
+                    "include_keywords": ["roaming", "5g sa"],
+                    "match_field": "content",
+                    "exclude_keywords": [],
+                },
+            },
+            "filters": {
+                "blacklist_domains": [],
+                "excluded_keywords": [],
+                "global_trend": {
+                    "excluded_domains": [],
+                    "excluded_url_patterns": [],
+                    "excluded_keywords": [],
+                    "required_keywords": ["roaming", "5g sa"],
+                    "required_topic_keywords": ["roaming", "5g sa"],
+                    "required_signal_keywords": [],
+                },
+            },
+        }
+        mock_collect_google.return_value = [
+            {
+                "title": "Operators announce 5G SA roaming launch",
+                "snippet": "Carriers launched 5G SA roaming commercially.",
+                "link": "https://example.com/news/5g-sa-roaming-launch",
+                "source": "Google",
+                "source_domain": "example.com",
+                "query": "5G SA roaming",
+                "published": recent_datetime(24 * 20),  # 20일 전: 24h 밖, 720h(30일) 내
+                "published_confidence": "date_only",
+            }
+        ]
+
+        collected = collect_articles(build_settings(max_articles_per_category=5))
+
+        self.assertEqual(len(collected["global_trend"]), 1)
+        self.assertEqual(
+            collected["global_trend"][0]["link"],
+            "https://example.com/news/5g-sa-roaming-launch",
+        )

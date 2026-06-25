@@ -420,6 +420,14 @@ class KeywordFilter:
         source_domain = str(article.get('source_domain', '')).lower()
         title = str(article.get('title', '')).lower()
 
+        # 시그널 워드(launch/announce/forecast/...)는 하드 탈락 조건이 아니라 소프트 랭킹
+        # 신호다. 유무를 기록해 validate() 점수에서 뉴스성 높은 기사를 우선한다.
+        article["global_trend_signal"] = bool(
+            self.global_trend_required_signal_keywords
+        ) and self._contains_any(
+            combined_text, self.global_trend_required_signal_keywords
+        )
+
         if self.global_trend_require_published_date and not article.get("published"):
             logger.debug(f"Filtered global_trend by missing published date: {title[:50]}")
             return False
@@ -454,14 +462,8 @@ class KeywordFilter:
             )
             return False
 
-        if self.global_trend_required_signal_keywords and not self._contains_any(
-            combined_text, self.global_trend_required_signal_keywords
-        ):
-            logger.debug(
-                f"Filtered global_trend by missing news signal keyword: {title[:50]}"
-            )
-            return False
-
+        # required_signal_keywords 는 위에서 소프트 랭킹 신호로 전환했으므로
+        # 여기서 하드 탈락시키지 않는다. 시그널이 없어도 관련성 게이트만 통과하면 유지.
         return True
 
     def validate(self, article: Dict, category: str = "") -> bool:
@@ -528,7 +530,11 @@ class KeywordFilter:
             article["relevance_reason"] = "voc_match"
             article["relevance_score"] = 100 + len(signals)
         else:
-            article["relevance_score"] = 50 + len(article.get("matched_include_keywords", []))
+            relevance_score = 50 + len(article.get("matched_include_keywords", []))
+            # global_trend 시그널 워드 포함 기사에 부스트 → 정렬 상단 우선.
+            if category == "global_trend" and article.get("global_trend_signal"):
+                relevance_score += 25
+            article["relevance_score"] = relevance_score
             article["relevance_reason"] = article.get("relevance_reason", "category_match")
 
         return True

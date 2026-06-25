@@ -65,6 +65,22 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         start_time=window.start_utc,
         end_time=window.end_utc,
     )
+    # global_trend는 일일 뉴스가 아닌 느린 산업 트렌드 토픽이라 더 넓은 롤링 윈도우를
+    # 사용한다. force_rolling으로 월요일 주말 갭 구간을 우회해 항상 넓은 윈도우를 유지한다.
+    global_trend_window = get_collection_window_kst(
+        window_hours=settings.global_trend_window_hours, force_rolling=True
+    )
+    global_trend_time_filter = TimeFilter(
+        window_hours=settings.global_trend_window_hours,
+        start_time=global_trend_window.start_utc,
+        end_time=global_trend_window.end_utc,
+    )
+    logger.info(
+        "global_trend window (%s): KST %s ~ %s",
+        global_trend_window.label,
+        global_trend_window.start_kst.strftime("%Y-%m-%d %H:%M"),
+        global_trend_window.end_kst.strftime("%Y-%m-%d %H:%M"),
+    )
     keyword_filter = KeywordFilter(
         blacklist_domains=filters_config["blacklist_domains"],
         excluded_keywords=filters_config["excluded_keywords"],
@@ -117,7 +133,10 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
                 except Exception as exc:
                     logger.error("    Google Search failed: %s", exc)
 
-        category_articles = time_filter.filter_articles(category_articles)
+        active_time_filter = (
+            global_trend_time_filter if category_key == "global_trend" else time_filter
+        )
+        category_articles = active_time_filter.filter_articles(category_articles)
         category_articles = keyword_filter.filter_articles(
             category_articles, category=category_key
         )

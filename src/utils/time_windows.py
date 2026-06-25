@@ -21,12 +21,20 @@ class CollectionWindow:
     label: str
 
 
-def get_collection_window_kst(window_hours: int = 24, now_utc: Optional[datetime] = None) -> CollectionWindow:
+def get_collection_window_kst(
+    window_hours: int = 24,
+    now_utc: Optional[datetime] = None,
+    force_rolling: bool = False,
+) -> CollectionWindow:
     """
     KST 기준 수집 윈도우를 계산한다.
 
     월요일(KST) 실행 시: 금요일 09:00 ~ 월요일 09:00 고정 구간
     그 외: 현재시각 기준 window_hours 시간
+
+    force_rolling=True 이면 월요일 특수 구간을 무시하고 항상 window_hours 롤링 윈도우를
+    사용한다. 일일 뉴스가 아닌 느린 산업 트렌드(예: global_trend)처럼 넓은 윈도우가
+    필요한 카테고리에서 주말 갭 보정이 오히려 윈도우를 좁히는 것을 막기 위함이다.
     """
     if now_utc is None:
         now_utc = datetime.now(timezone.utc)
@@ -38,7 +46,7 @@ def get_collection_window_kst(window_hours: int = 24, now_utc: Optional[datetime
     now_kst = now_utc.astimezone(KST)
 
     # Monday = 0
-    if now_kst.weekday() == 0:
+    if not force_rolling and now_kst.weekday() == 0:
         monday_9_kst = now_kst.replace(hour=9, minute=0, second=0, microsecond=0)
         friday_9_kst = monday_9_kst - timedelta(days=3)
         return CollectionWindow(

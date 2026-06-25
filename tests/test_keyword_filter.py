@@ -221,6 +221,30 @@ class KeywordFilterTests(unittest.TestCase):
 
         self.assertTrue(keyword_filter.validate(article, category="global_trend"))
 
+    def test_global_trend_passes_without_signal_word_but_ranks_lower(self):
+        keyword_filter = self.build_filter()
+        no_signal = {
+            "title": "5G SA roaming architecture overview",
+            "snippet": "A technical walkthrough of standalone 5G roaming for a mobile network.",
+            "query": "5G SA roaming",
+            "link": "https://example.com/news/5g-sa-overview",
+            "source": "Google",
+            "source_domain": "example.com",
+        }
+        with_signal = {
+            "title": "Operators announce 5G SA roaming launch",
+            "snippet": "Carriers launched 5G SA roaming commercially.",
+            "query": "5G SA roaming",
+            "link": "https://example.com/news/5g-sa-launch",
+            "source": "Google",
+            "source_domain": "example.com",
+        }
+        self.assertTrue(keyword_filter.validate(no_signal, category="global_trend"))
+        self.assertTrue(keyword_filter.validate(with_signal, category="global_trend"))
+        self.assertFalse(no_signal["global_trend_signal"])
+        self.assertTrue(with_signal["global_trend_signal"])
+        self.assertGreater(with_signal["relevance_score"], no_signal["relevance_score"])
+
     def test_esim_industry_accepts_brand_only_article(self):
         keyword_filter = self.build_filter()
         article = {
