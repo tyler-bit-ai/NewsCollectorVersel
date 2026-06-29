@@ -207,7 +207,39 @@ categories:
     priority: 4
     name: "Global Roaming Trend"
     content_type: "news"
-    sources: ["google_search"]
+    sources: ["google_search", "rss_feed"]
+    match_field: "content"
+    rss_feeds:
+      - url: "https://www.rcrwireless.com/tag/roaming/feed"
+        name: "RCR Wireless (Roaming)"
+        weight: 1.3
+        limit: 20
+        topic_hint: "roaming esim 5g mvno"
+        article_type: "global"
+      - url: "https://www.rcrwireless.com/tag/esim/feed"
+        name: "RCR Wireless (eSIM)"
+        weight: 1.3
+        limit: 20
+        topic_hint: "esim roaming 5g sgp.32"
+        article_type: "global"
+      - url: "https://www.gsma.com/newsroom/feed/"
+        name: "GSMA"
+        weight: 1.5
+        limit: 20
+        topic_hint: "roaming esim 5g sgp.32"
+        article_type: "global"
+      - url: "https://www.fiercewireless.com/rss/xml"
+        name: "Fierce Wireless"
+        weight: 1.2
+        limit: 20
+        topic_hint: "roaming esim 5g mvno"
+        article_type: "global"
+      - url: "https://www.totaltele.com/rss"
+        name: "Total Telecom"
+        weight: 1.2
+        limit: 20
+        topic_hint: "roaming esim 5g"
+        article_type: "global"
     keywords:
       - "roaming business"
       - "global eSIM industry"
@@ -232,7 +264,6 @@ categories:
       - "ntn"
       - "5g sa"
       - "sgp.32"
-    match_field: "content"
     exclude_keywords:
       - "dog"
       - "dogs"
@@ -331,7 +362,14 @@ categories:
     priority: 0
     name: "로밍 VoC"
     content_type: "voc"
-    sources: ["naver_blog", "naver_cafe"]
+    sources: ["naver_blog", "rss_feed"]
+    rss_feeds:
+      - url: "https://www.ppomppu.co.kr/rss.php?id=phone"
+        name: "뽐뿌 휴대폰"
+        weight: 1.0
+        limit: 30
+        topic_hint: "로밍 후기"
+        article_type: "domestic"
     keywords:
       - "로밍 후기"
       - "로밍 리뷰"
@@ -370,7 +408,14 @@ categories:
     priority: 1
     name: "eSIM VoC"
     content_type: "voc"
-    sources: ["naver_blog", "naver_cafe"]
+    sources: ["naver_blog", "rss_feed"]
+    rss_feeds:
+      - url: "https://www.ppomppu.co.kr/rss.php?id=phone"
+        name: "뽐뿌 휴대폰"
+        weight: 1.0
+        limit: 30
+        topic_hint: "eSIM 후기"
+        article_type: "domestic"
     keywords:
       - "도시락 eSIM후기"
       - "도시락eSIM 리뷰"

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import yaml
 
@@ -13,9 +14,11 @@ from src.analyzers.summarizer import Summarizer
 from src.collectors.google_collector import GoogleCollector
 from src.collectors.mofa_0404_collector import Mofa0404Collector
 from src.collectors.naver_collector import NaverCollector
+from src.collectors.rss_collector import RSSCollector
 from src.config.settings import Settings
 from src.filters.deduplicator import Deduplicator
 from src.filters.keyword_filter import KeywordFilter
+from src.filters.persistent_deduplicator import PersistentDeduplicator
 from src.filters.time_filter import TimeFilter
 from src.utils.time_windows import get_collection_window_kst
 
@@ -35,7 +38,24 @@ def load_categories(config_path: Path | None = None) -> Dict:
         return yaml.safe_load(file)
 
 
-def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
+def _apply_recency_boost(articles: List[Dict], now_utc: Optional[datetime] = None) -> None:
+    """기사 나이에 따른 신선도 점수를 relevance_score에 더한다 (인플레이스)."""
+    now = now_utc or datetime.now(timezone.utc)
+    for article in articles:
+        published = article.get("published")
+        if published and hasattr(published, "astimezone"):
+            try:
+                days_old = max(0, (now - published.astimezone(timezone.utc)).days)
+                recency_boost = max(0, 20 - days_old)
+                article["relevance_score"] = int(article.get("relevance_score", 50)) + recency_boost
+            except Exception:
+                pass
+
+
+def collect_articles(
+    settings: Settings,
+    persistent_deduplicator: Optional[PersistentDeduplicator] = None,
+) -> Dict[str, List[Dict]]:
     logger.info("=== Starting News Collection ===")
 
     naver_collector = NaverCollector(
@@ -48,6 +68,7 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         search_engine_id=settings.api.search_engine_id,
         debug_mode=settings.debug_mode,
     )
+    rss_collector = RSSCollector(debug_mode=settings.debug_mode)
 
     config = load_categories()
     categories = config["categories"]
@@ -133,6 +154,27 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
                 except Exception as exc:
                     logger.error("    Google Search failed: %s", exc)
 
+        if "rss_feed" in sources:
+            for feed_config in category_config.get("rss_feeds", []):
+                feed_url = feed_config.get("url", "")
+                if not feed_url:
+                    continue
+                try:
+                    category_articles.extend(
+                        rss_collector.collect(
+                            feed_url=feed_url,
+                            source_name=feed_config.get("name", ""),
+                            quality_weight=feed_config.get("weight", 1.0),
+                            limit=feed_config.get("limit", 20),
+                            topic_hint=feed_config.get("topic_hint", ""),
+                            article_type=feed_config.get("article_type", "global"),
+                        )
+                    )
+                except Exception as exc:
+                    logger.error(
+                        "    RSS feed %s failed: %s", feed_config.get("name", feed_url), exc
+                    )
+
         active_time_filter = (
             global_trend_time_filter if category_key == "global_trend" else time_filter
         )
@@ -142,6 +184,12 @@ def collect_articles(settings: Settings) -> Dict[str, List[Dict]]:
         )
         deduplicator = Deduplicator()
         category_articles = deduplicator.deduplicate_within_category(category_articles)
+
+        if persistent_deduplicator:
+            category_articles = persistent_deduplicator.filter_new_only(category_articles)
+
+        _apply_recency_boost(category_articles)
+
         category_articles = sorted(
             category_articles,
             key=lambda article: (

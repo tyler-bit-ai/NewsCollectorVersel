@@ -43,13 +43,15 @@ class Summarizer(BaseAnalyzer):
         return results
 
     def _format_articles(self, articles: List[Dict]) -> str:
-        """기사를 텍스트로 변환"""
+        """기사를 텍스트로 변환. RSS 기사는 rss_content 긴 excerpt 우선 사용."""
         formatted = []
         for i, article in enumerate(articles[:10], 1):  # 최대 10개
+            body = article.get("rss_content") or article.get("snippet") or ""
+            body_trimmed = body[:600].strip()
             formatted.append(
                 f"[{i}] {article['title']}\n"
                 f"링크: {article['link']}\n"
-                f"요약: {article['snippet']}\n"
+                f"본문: {body_trimmed}\n"
             )
         return "\n".join(formatted)
 

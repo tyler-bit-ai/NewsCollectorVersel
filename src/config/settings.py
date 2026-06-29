@@ -57,10 +57,17 @@ class RuntimeSettings:
 
 
 @dataclass(frozen=True)
+class CacheSettings:
+    upstash_redis_url: str | None
+    upstash_redis_token: str | None
+
+
+@dataclass(frozen=True)
 class Settings:
     api: APISettings
     email: EmailSettings
     runtime: RuntimeSettings
+    cache: CacheSettings
 
     @property
     def debug_mode(self) -> bool:
@@ -153,5 +160,9 @@ def load_settings() -> Settings:
                 os.getenv("EMAIL_SUMMARY_MAX_CHARS", "140")
             ),
             cron_secret=os.getenv("CRON_SECRET") or os.getenv("VERCEL_CRON_SECRET"),
+        ),
+        cache=CacheSettings(
+            upstash_redis_url=os.getenv("UPSTASH_REDIS_REST_URL"),
+            upstash_redis_token=os.getenv("UPSTASH_REDIS_REST_TOKEN"),
         ),
     )

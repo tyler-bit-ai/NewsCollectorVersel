@@ -416,7 +416,9 @@ class KeywordFilter:
 
     def _validate_global_trend(self, article: Dict, text_map: Dict[str, str]) -> bool:
         link = str(article.get('link', '')).lower()
-        combined_text = text_map["content"]
+        # "combined" = title + snippet + query. RSS 기사는 query에 topic_hint가 주입돼
+        # 있어 roaming/esim 등 키워드가 포함된다.
+        combined_text = text_map["combined"]
         source_domain = str(article.get('source_domain', '')).lower()
         title = str(article.get('title', '')).lower()
 
@@ -454,13 +456,9 @@ class KeywordFilter:
             logger.debug(f"Filtered global_trend by missing required keyword: {title[:50]}")
             return False
 
-        if self.global_trend_required_topic_keywords and not self._contains_any(
-            combined_text, self.global_trend_required_topic_keywords
-        ):
-            logger.debug(
-                f"Filtered global_trend by missing topic keyword: {title[:50]}"
-            )
-            return False
+        # required_topic_keywords 는 required_keywords 와 거의 동일한 목록이고
+        # RSS 소스 기사의 경우 스니펫이 짧아 중복 게이트가 과도하게 탈락시킨다.
+        # topic_hint → query 필드로 컨텍스트를 주입하므로 별도 게이트 불필요.
 
         # required_signal_keywords 는 위에서 소프트 랭킹 신호로 전환했으므로
         # 여기서 하드 탈락시키지 않는다. 시그널이 없어도 관련성 게이트만 통과하면 유지.

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from src.config.settings import Settings
+from src.filters.persistent_deduplicator import PersistentDeduplicator
 from src.notifiers.email_formatter import EmailFormatter
 from src.notifiers.smtp_sender import SMTPSender
 from src.pipeline.core import analyze_articles, collect_articles, collect_external_alerts
@@ -54,7 +55,12 @@ def run_daily_job(settings: Settings, trigger: str = "unknown") -> Dict[str, Any
     logger = setup_logger(debug_mode=settings.debug_mode)
     logger.info("=== Daily job started (%s) ===", trigger)
 
-    collected_data = collect_articles(settings)
+    persistent_deduplicator = PersistentDeduplicator(
+        redis_url=settings.cache.upstash_redis_url,
+        redis_token=settings.cache.upstash_redis_token,
+    )
+
+    collected_data = collect_articles(settings, persistent_deduplicator=persistent_deduplicator)
     analyzed_data = analyze_articles(collected_data, settings)
 
     alerts: List[Dict[str, Any]] = []
@@ -83,6 +89,11 @@ def run_daily_job(settings: Settings, trigger: str = "unknown") -> Dict[str, Any
         subject_prefix="[SKT 로밍팀] 일일 뉴스 리포트",
         dry_run=settings.dry_run,
     )
+
+    # 발송 성공 후에만 Redis에 기록 (dry_run·실패 시 재시도 가능하도록 마킹하지 않음)
+    if report_result.get("sent") and not report_result.get("dry_run"):
+        all_sent = [a for articles in collected_data.values() for a in articles]
+        persistent_deduplicator.mark_sent(all_sent)
 
     safety_alert_result: Dict[str, Any]
     if settings.enable_0404_alerts and alerts:
