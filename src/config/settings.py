@@ -162,7 +162,7 @@ def load_settings() -> Settings:
             cron_secret=os.getenv("CRON_SECRET") or os.getenv("VERCEL_CRON_SECRET"),
         ),
         cache=CacheSettings(
-            upstash_redis_url=os.getenv("UPSTASH_REDIS_REST_URL"),
-            upstash_redis_token=os.getenv("UPSTASH_REDIS_REST_TOKEN"),
+            upstash_redis_url=os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL"),
+            upstash_redis_token=os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN"),
         ),
     )

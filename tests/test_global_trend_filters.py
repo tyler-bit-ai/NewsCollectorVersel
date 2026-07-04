@@ -2,7 +2,13 @@ from datetime import datetime, timedelta, timezone
 import unittest
 from unittest.mock import patch
 
-from src.config.settings import APISettings, EmailSettings, RuntimeSettings, Settings
+from src.config.settings import (
+    APISettings,
+    CacheSettings,
+    EmailSettings,
+    RuntimeSettings,
+    Settings,
+)
 from src.filters.keyword_filter import KeywordFilter
 from src.filters.time_filter import TimeFilter
 from src.pipeline.core import collect_articles
@@ -38,6 +44,7 @@ def build_settings(max_articles_per_category: int = 10) -> Settings:
             email_summary_max_chars=140,
             cron_secret="secret-token",
         ),
+        cache=CacheSettings(upstash_redis_url=None, upstash_redis_token=None),
     )
 
 
