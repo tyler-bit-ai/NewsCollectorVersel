@@ -85,7 +85,7 @@ class PersistentDeduplicator:
             pipe = self._redis.pipeline()
             for article in articles:
                 pipe.set(self._key(article["link"]), "1", ex=ttl_seconds)
-            pipe.execute()
+            pipe.exec()
             logger.info(
                 "PersistentDeduplicator: %d건 발송 기록 완료 (TTL %dd)",
                 len(articles),
