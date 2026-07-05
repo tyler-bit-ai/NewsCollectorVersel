@@ -240,6 +240,24 @@ categories:
         limit: 20
         topic_hint: "roaming esim 5g"
         article_type: "global"
+      - url: "https://resources.telegeography.com/rss.xml"
+        name: "TeleGeography"
+        weight: 1.5
+        limit: 20
+        topic_hint: "roaming esim 5g mvno satellite"
+        article_type: "global"
+      - url: "https://www.mobileworldlive.com/feed"
+        name: "Mobile World Live"
+        weight: 1.2
+        limit: 20
+        topic_hint: "roaming esim 5g mvno"
+        article_type: "global"
+      - url: "https://www.telecomstechnews.com/feed/"
+        name: "Telecoms Tech News"
+        weight: 1.1
+        limit: 20
+        topic_hint: "roaming esim 5g mvno"
+        article_type: "global"
     keywords:
       - "roaming business"
       - "global eSIM industry"
@@ -528,29 +546,6 @@ filters:
       - "/categories/"
       - "/plans-devices/"
     excluded_keywords: []
-    required_keywords:
-      - "roaming"
-      - "esim"
-      - "travel esim"
-      - "5g sa"
-      - "sgp.32"
-      - "satellite cellular"
-      - "direct-to-device"
-      - "direct to device"
-      - "non-terrestrial network"
-      - "ntn"
-    required_topic_keywords:
-      - "roaming"
-      - "travel esim"
-      - "esim"
-      - "mvno"
-      - "5g sa"
-      - "satellite"
-      - "sgp.32"
-      - "direct-to-device"
-      - "direct to device"
-      - "non-terrestrial network"
-      - "ntn"
     required_signal_keywords:
       - "launch"
       - "launches"

@@ -66,11 +66,16 @@ class GlobalTrendKeywordFilterTests(unittest.TestCase):
             blacklist_domains=[],
             excluded_keywords=[],
             global_trend_rules={
-                "required_keywords": ["roaming", "mvno"],
-                "required_topic_keywords": ["roaming", "mvno"],
                 "required_signal_keywords": ["launch", "announced", "partnership"],
                 "excluded_marketing_keywords": ["book a meeting", "download datasheet"],
                 "excluded_url_patterns": ["/products/"],
+            },
+            category_rules={
+                "global_trend": {
+                    "include_keywords": ["roaming", "mvno"],
+                    "exclude_keywords": [],
+                    "match_field": "content",
+                }
             },
         )
 
@@ -125,14 +130,15 @@ class CollectArticlesTests(unittest.TestCase):
                     "name": "Global Roaming Trend",
                     "sources": ["google_search"],
                     "keywords": ["MVNO roaming services"],
+                    "include_keywords": ["roaming", "mvno"],
+                    "exclude_keywords": [],
+                    "match_field": "content",
                 }
             },
             "filters": {
                 "blacklist_domains": [],
                 "excluded_keywords": [],
                 "global_trend": {
-                    "required_keywords": ["roaming", "mvno"],
-                    "required_topic_keywords": ["roaming", "mvno"],
                     "required_signal_keywords": ["announced", "launch", "partnership"],
                     "excluded_marketing_keywords": [],
                     "excluded_url_patterns": [],

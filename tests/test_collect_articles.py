@@ -87,7 +87,6 @@ class CollectArticlesTests(unittest.TestCase):
                     "excluded_domains": [],
                     "excluded_url_patterns": [],
                     "excluded_keywords": [],
-                    "required_keywords": [],
                 },
             },
         }
@@ -176,7 +175,6 @@ class CollectArticlesTests(unittest.TestCase):
                     "excluded_domains": [],
                     "excluded_url_patterns": [],
                     "excluded_keywords": [],
-                    "required_keywords": [],
                 },
             },
         }
@@ -237,7 +235,6 @@ class CollectArticlesTests(unittest.TestCase):
                     "excluded_domains": [],
                     "excluded_url_patterns": [],
                     "excluded_keywords": [],
-                    "required_keywords": [],
                 },
             },
         }
@@ -297,8 +294,6 @@ class CollectArticlesTests(unittest.TestCase):
                     "excluded_domains": [],
                     "excluded_url_patterns": [],
                     "excluded_keywords": [],
-                    "required_keywords": ["roaming", "5g sa"],
-                    "required_topic_keywords": ["roaming", "5g sa"],
                     "required_signal_keywords": [],
                 },
             },

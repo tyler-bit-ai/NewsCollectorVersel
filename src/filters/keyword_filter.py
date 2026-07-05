@@ -133,12 +133,6 @@ class KeywordFilter:
         self.global_trend_excluded_keywords: Set[str] = set(
             value.lower() for value in rules.get("excluded_keywords", [])
         )
-        self.global_trend_required_keywords: Set[str] = set(
-            value.lower() for value in rules.get("required_keywords", [])
-        )
-        self.global_trend_required_topic_keywords: Set[str] = set(
-            value.lower() for value in rules.get("required_topic_keywords", [])
-        )
         self.global_trend_required_signal_keywords: Set[str] = set(
             value.lower() for value in rules.get("required_signal_keywords", [])
         )
@@ -198,9 +192,6 @@ class KeywordFilter:
         return sorted(
             keyword for keyword in keywords if self._keyword_matches(combined_text, keyword)
         )
-
-    def _contains_any(self, text: str, keywords: Set[str]) -> bool:
-        return any(str(keyword or "").lower() in text for keyword in keywords)
 
     def _apply_category_rule(self, article: Dict, category: str, text_map: Dict[str, str]) -> bool:
         rule = self.category_rules.get(category) or {}
@@ -425,9 +416,7 @@ class KeywordFilter:
         # 시그널 워드(launch/announce/forecast/...)는 하드 탈락 조건이 아니라 소프트 랭킹
         # 신호다. 유무를 기록해 validate() 점수에서 뉴스성 높은 기사를 우선한다.
         article["global_trend_signal"] = bool(
-            self.global_trend_required_signal_keywords
-        ) and self._contains_any(
-            combined_text, self.global_trend_required_signal_keywords
+            self._extract_matches(combined_text, self.global_trend_required_signal_keywords)
         )
 
         if self.global_trend_require_published_date and not article.get("published"):
@@ -442,26 +431,19 @@ class KeywordFilter:
             logger.debug(f"Filtered global_trend by URL pattern: {link}")
             return False
 
-        if self._contains_any(combined_text, self.global_trend_excluded_keywords):
+        if self._extract_matches(combined_text, self.global_trend_excluded_keywords):
             logger.debug(f"Filtered global_trend by excluded keyword: {title[:50]}")
             return False
 
-        if self._contains_any(combined_text, self.global_trend_excluded_marketing_keywords):
+        if self._extract_matches(combined_text, self.global_trend_excluded_marketing_keywords):
             logger.debug(f"Filtered global_trend by marketing keyword: {title[:50]}")
             return False
 
-        if self.global_trend_required_keywords and not self._contains_any(
-            combined_text, self.global_trend_required_keywords
-        ):
-            logger.debug(f"Filtered global_trend by missing required keyword: {title[:50]}")
-            return False
-
-        # required_topic_keywords 는 required_keywords 와 거의 동일한 목록이고
-        # RSS 소스 기사의 경우 스니펫이 짧아 중복 게이트가 과도하게 탈락시킨다.
-        # topic_hint → query 필드로 컨텍스트를 주입하므로 별도 게이트 불필요.
-
-        # required_signal_keywords 는 위에서 소프트 랭킹 신호로 전환했으므로
-        # 여기서 하드 탈락시키지 않는다. 시그널이 없어도 관련성 게이트만 통과하면 유지.
+        # 관련성(roaming/esim/mvno/...) 게이트는 categories.yaml의
+        # global_trend.include_keywords로 일원화됐다 (_apply_category_rule,
+        # match_field: content = title+snippet 실제 본문만 본다). RSS의 topic_hint는
+        # query 필드로 주입돼 항상 매칭되므로 relevance 게이트에는 절대 쓰지 않는다.
+        # 여기서는 별도 required_keywords 게이트를 두지 않는다.
         return True
 
     def validate(self, article: Dict, category: str = "") -> bool:
