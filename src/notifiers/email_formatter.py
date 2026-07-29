@@ -229,7 +229,7 @@ class EmailFormatter:
         <head>
             <meta charset="UTF-8">
             <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; background: #f5f5f5; }}
+                body {{ font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif; line-height: 1.6; margin: 20px; background: #f5f5f5; }}
                 .container {{ max-width: 900px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 24px; }}
                 h1 {{ color: #d97706; border-bottom: 3px solid #d97706; padding-bottom: 10px; }}
                 .date {{ color: #666; margin-bottom: 16px; }}
@@ -289,7 +289,7 @@ class EmailFormatter:
         <head>
             <meta charset="UTF-8">
             <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+                body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif; line-height: 1.6; margin: 20px; }
                 .section { margin-bottom: 30px; }
                 .article { margin-bottom: 15px; padding: 10px; border-left: 3px solid #007bff; }
                 .source { color: #666; font-size: 0.9em; }
