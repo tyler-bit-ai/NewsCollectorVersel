@@ -23,6 +23,12 @@ class EmailFormatter:
         "voc_esim": "eSIM VoC",
     }
 
+    ROAMING_CARRIER_NAMES = {
+        "SKT": "SKT",
+        "KT": "KT",
+        "LGU": "유플러스",
+    }
+
     def __init__(self, template_dir: str | None = None, top_n: int = 3, summary_max_chars: int = 140):
         self.template_dir = Path(template_dir) if template_dir else Path(__file__).resolve().parent / "templates"
         self.top_n = max(1, top_n)
@@ -52,6 +58,7 @@ class EmailFormatter:
         rendered = rendered.replace("{{KEY_FINDINGS}}", self._format_findings(data.get("key_findings", [])))
         rendered = rendered.replace("{{RECOMMENDATIONS}}", self._format_recommendations(data.get("recommendations", [])))
         rendered = rendered.replace("{{CATEGORY_SECTIONS}}", self._generate_category_sections(data))
+        rendered = rendered.replace("{{ROAMING_NOTICE_CARDS}}", self._generate_roaming_notice_cards(data))
         return rendered
 
     def _format_today_brief(self, data: Dict) -> str:
@@ -123,7 +130,6 @@ class EmailFormatter:
                 <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                     <tr>
                         <td class="category-head" style="padding: 14px 16px;">
-                            <p class="category-label" style="margin-bottom: 6px;">CATEGORY {index:02d}</p>
                             <p class="category-title">{html_lib.escape(name)} <span class="count">(0건)</span></p>
                         </td>
                     </tr>
@@ -146,7 +152,6 @@ class EmailFormatter:
             <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                 <tr>
                     <td class="category-head" style="padding: 14px 16px;">
-                        <p class="category-label" style="margin-bottom: 6px;">CATEGORY {index:02d}</p>
                         <p class="category-title">{html_lib.escape(name)} <span class="count">({len(articles)}건)</span></p>
                     </td>
                 </tr>
@@ -157,6 +162,35 @@ class EmailFormatter:
                     </td>
                 </tr>
             </table>
+        </td>
+        """
+
+    def _generate_roaming_notice_cards(self, data: Dict) -> str:
+        notices_by_carrier = data.get("roaming_notices", {}) or {}
+        cells = []
+        for code, name in self.ROAMING_CARRIER_NAMES.items():
+            raw_notices = notices_by_carrier.get(code, [])
+            notices = [item for item in raw_notices if isinstance(item, dict)][: self.top_n]
+            cells.append(self._render_roaming_notice_card(name=name, notices=notices))
+        return '<td width="10"></td>'.join(cells)
+
+    def _render_roaming_notice_card(self, name: str, notices: List[Dict]) -> str:
+        title_html = f'<p class="signal-title" style="margin-bottom: 8px;">{html_lib.escape(name)}</p>'
+
+        if not notices:
+            body = '<p class="empty-text">공지사항이 없습니다.</p>'
+        else:
+            items = []
+            for notice in notices:
+                title = html_lib.escape(str(notice.get("title", "")))
+                link = html_lib.escape(str(notice.get("url", "")))
+                items.append(f'<li><a href="{link}" class="more-title" style="text-decoration: none;">{title}</a></li>')
+            body = f'<ul class="more-list">{"".join(items)}</ul>'
+
+        return f"""
+        <td class="signal-card" style="padding: 14px;">
+            {title_html}
+            {body}
         </td>
         """
 

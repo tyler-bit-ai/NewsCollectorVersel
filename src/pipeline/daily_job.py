@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from src.collectors.roaming_notices_collector import fetch_roaming_notices
 from src.config.settings import Settings
 from src.filters.persistent_deduplicator import PersistentDeduplicator
 from src.notifiers.email_formatter import EmailFormatter
@@ -71,6 +72,7 @@ def run_daily_job(settings: Settings, trigger: str = "unknown") -> Dict[str, Any
             logger.error("0404 alert collection failed: %s", exc)
             alerts = []
     analyzed_data["external_alerts"] = alerts
+    analyzed_data["roaming_notices"] = fetch_roaming_notices(settings.database_url)
 
     formatter = EmailFormatter(
         top_n=settings.email_top_n,

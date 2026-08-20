@@ -9,7 +9,6 @@ class EmailFormatterTests(unittest.TestCase):
         formatter = EmailFormatter(top_n=2, summary_max_chars=80)
         html = formatter.format(
             {
-                "strategic_insight": "Insight",
                 "key_findings": ["Finding A"],
                 "recommendations": ["Recommendation A"],
                 "section_market_culture": [
@@ -21,12 +20,19 @@ class EmailFormatterTests(unittest.TestCase):
                     }
                 ],
                 "external_alerts": [],
+                "roaming_notices": {
+                    "SKT": [{"title": "SKT 공지 A", "url": "https://skt.example.com/a"}],
+                },
             }
         )
 
         self.assertIn("SKT 로밍팀 일일 뉴스 리포트", html)
-        self.assertIn("Insight", html)
+        self.assertIn("Finding A", html)
         self.assertIn("Article A", html)
+        self.assertIn("로밍 공지사항", html)
+        self.assertIn("SKT 공지 A", html)
+        self.assertNotIn("CATEGORY 0", html)
+        self.assertNotIn("Core Signals", html)
 
     def test_smtp_sender_dry_run_returns_metadata(self):
         result = SMTPSender("sender@example.com", "password").send(

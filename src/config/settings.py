@@ -68,6 +68,7 @@ class Settings:
     email: EmailSettings
     runtime: RuntimeSettings
     cache: CacheSettings
+    database_url: str | None = None
 
     @property
     def debug_mode(self) -> bool:
@@ -165,4 +166,5 @@ def load_settings() -> Settings:
             upstash_redis_url=os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL"),
             upstash_redis_token=os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN"),
         ),
+        database_url=os.getenv("DATABASE_URL"),
     )
