@@ -6,5 +6,3 @@ __pycache__/
 .shrimp-data/
 
 .vercel
-pyproject.toml
-uv.lock
