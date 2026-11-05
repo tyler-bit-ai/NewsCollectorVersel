@@ -281,7 +281,7 @@ def analyze_articles(collected_data: Dict[str, List[Dict]], settings: Settings) 
     insight_generator = InsightGenerator(
         api_key=settings.api.openai_api_key,
         base_url=settings.api.openai_base_url,
-        model=settings.api.model_advanced,
+        model=settings.api.model_basic,  # 토큰 절감: glm-4.6 → flash 강등 (2026-11-05)
     )
     insight_data = insight_generator.analyze(summary_data)
 
