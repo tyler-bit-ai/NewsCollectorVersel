@@ -51,6 +51,25 @@ class SettingsTests(unittest.TestCase):
             "REPORT_RECIPIENTS": "a@example.com",
         }
 
+    def test_model_defaults_use_zai_glm_models(self):
+        with patch.dict(os.environ, self._base_required_env(), clear=True):
+            settings = load_settings()
+
+        self.assertEqual(settings.api.model_basic, "glm-5.3-flash")
+        self.assertEqual(settings.api.model_advanced, "glm-4.6")
+
+    def test_model_env_vars_override_defaults(self):
+        env = {
+            **self._base_required_env(),
+            "OPENAI_MODEL_BASIC": "custom-basic",
+            "OPENAI_MODEL_ADVANCED": "custom-advanced",
+        }
+        with patch.dict(os.environ, env, clear=True):
+            settings = load_settings()
+
+        self.assertEqual(settings.api.model_basic, "custom-basic")
+        self.assertEqual(settings.api.model_advanced, "custom-advanced")
+
     def test_cache_settings_prefers_vercel_kv_env_vars(self):
         env = {
             **self._base_required_env(),

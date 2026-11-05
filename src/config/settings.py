@@ -134,10 +134,8 @@ def load_settings() -> Settings:
             search_engine_id=required_vars["SEARCH_ENGINE_ID"] or "",
             openai_api_key=required_vars["OPENAI_API_KEY"] or "",
             openai_base_url=required_vars["OPENAI_BASE_URL"] or "",
-            model_basic=os.getenv("OPENAI_MODEL_BASIC", "gpt-4o-mini-2024-07-18"),
-            model_advanced=os.getenv(
-                "OPENAI_MODEL_ADVANCED", "gpt-4o-mini-2024-07-18"
-            ),
+            model_basic=os.getenv("OPENAI_MODEL_BASIC", "glm-5.3-flash"),
+            model_advanced=os.getenv("OPENAI_MODEL_ADVANCED", "glm-4.6"),
         ),
         email=EmailSettings(
             gmail_user=required_vars["GMAIL_USER"] or "",

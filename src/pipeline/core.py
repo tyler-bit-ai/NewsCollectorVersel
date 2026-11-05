@@ -11,6 +11,7 @@ import yaml
 
 from src.analyzers.insight_generator import InsightGenerator
 from src.analyzers.summarizer import Summarizer
+from src.collectors.community_voc_collector import CommunityVocCollector
 from src.collectors.google_collector import GoogleCollector
 from src.collectors.mofa_0404_collector import Mofa0404Collector
 from src.collectors.naver_collector import NaverCollector
@@ -115,11 +116,18 @@ def collect_articles(
         for key, category in categories.items()
     }
 
+    community_digest: Dict[str, List[Dict]] = {}
+    if any("community_digest" in category["sources"] for category in categories.values()):
+        community_digest = CommunityVocCollector(
+            redis_url=settings.cache.upstash_redis_url,
+            redis_token=settings.cache.upstash_redis_token,
+        ).collect()
+
     for category_key, category_config in categories.items():
         logger.info("[%s] %s", category_config["id"], category_config["name"])
         category_articles: List[Dict] = []
         sources = category_config["sources"]
-        keywords = category_config["keywords"]
+        keywords = category_config.get("keywords", [])
 
         for keyword in keywords:
             logger.info("  Keyword: %s", keyword)
@@ -179,6 +187,10 @@ def collect_articles(
             global_trend_time_filter if category_key == "global_trend" else time_filter
         )
         category_articles = active_time_filter.filter_articles(category_articles)
+        # 커뮤니티 글의 날짜 범위는 업로더가 결정하고 재발송은 PersistentDeduplicator가
+        # 막으므로 TimeFilter를 거치지 않도록 시간 필터 뒤에 합친다.
+        if "community_digest" in sources:
+            category_articles.extend(community_digest.get(category_key, []))
         category_articles = keyword_filter.filter_articles(
             category_articles, category=category_key
         )

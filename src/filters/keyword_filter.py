@@ -43,71 +43,6 @@ class KeywordFilter:
         "로",
         "랑",
     )
-    VOC_KEYWORDS: Set[str] = {
-        "후기",
-        "리뷰",
-        "재구매",
-        "사용기",
-        "불편",
-        "안됨",
-        "오류",
-        "속도",
-        "개통",
-        "환불",
-        "문의",
-        "연결",
-        "설정",
-    }
-    ROAMING_KEYWORDS: Set[str] = {
-        "로밍",
-        "데이터 로밍",
-        "로밍 요금제",
-        "해외 로밍",
-        "통화 로밍",
-        "baro 로밍",
-        "skt 로밍",
-        "kt 로밍",
-        "lgu+ 로밍",
-        "lg유플러스 로밍",
-    }
-    CARRIER_ROAMING_KEYWORDS: Set[str] = {
-        "baro 로밍",
-        "skt 로밍",
-        "kt 로밍",
-        "lgu+ 로밍",
-        "lg유플러스 로밍",
-    }
-    ESIM_KEYWORDS: Set[str] = {
-        "esim",
-        "이심",
-        "e심",
-        "로밍도깨비",
-        "로밍 도깨비",
-        "유심사",
-        "도시락 esim",
-        "도시락esim",
-        "말톡",
-        "에어알로",
-        "airalo",
-        "핀다이렉트",
-        "핀다이렉트 esim",
-        "로밍도깨비 esim",
-        "로밍 도깨비 esim",
-    }
-    ESIM_BRAND_KEYWORDS: Set[str] = {
-        "로밍도깨비",
-        "로밍 도깨비",
-        "유심사",
-        "도시락 esim",
-        "도시락esim",
-        "말톡",
-        "에어알로",
-        "airalo",
-        "핀다이렉트",
-        "핀다이렉트 esim",
-        "로밍도깨비 esim",
-        "로밍 도깨비 esim",
-    }
 
     def __init__(
         self,
@@ -356,55 +291,6 @@ class KeywordFilter:
         article["matched_exclude_keywords"] = []
         return True
 
-    def _classify_voc(self, article: Dict, text_map: Dict[str, str]) -> Tuple[Optional[str], List[str]]:
-        title_text = text_map["title"]
-        content_text = text_map["content"]
-
-        matched_voc = self._extract_matches(title_text, self.VOC_KEYWORDS)
-        if not matched_voc:
-            matched_voc = self._extract_matches(content_text, self.VOC_KEYWORDS)
-        if not matched_voc:
-            return None, []
-
-        matched_roaming = self._extract_matches(title_text, self.ROAMING_KEYWORDS)
-        matched_esim = self._extract_matches(title_text, self.ESIM_KEYWORDS)
-        matched_carrier_roaming = self._extract_matches(
-            title_text, self.CARRIER_ROAMING_KEYWORDS
-        )
-        matched_esim_brands = self._extract_matches(title_text, self.ESIM_BRAND_KEYWORDS)
-
-        if not matched_roaming and not matched_esim:
-            matched_roaming = self._extract_matches(content_text, self.ROAMING_KEYWORDS)
-            matched_esim = self._extract_matches(content_text, self.ESIM_KEYWORDS)
-        if not matched_carrier_roaming:
-            matched_carrier_roaming = self._extract_matches(
-                content_text, self.CARRIER_ROAMING_KEYWORDS
-            )
-        if not matched_esim_brands:
-            matched_esim_brands = self._extract_matches(
-                content_text, self.ESIM_BRAND_KEYWORDS
-            )
-
-        signals = [
-            *(f"voc:{value}" for value in matched_voc),
-            *(f"roaming:{value}" for value in matched_roaming),
-            *(f"carrier_roaming:{value}" for value in matched_carrier_roaming),
-            *(f"esim:{value}" for value in matched_esim),
-            *(f"esim_brand:{value}" for value in matched_esim_brands),
-        ]
-
-        if matched_carrier_roaming:
-            return "voc_roaming", signals
-        if matched_esim_brands:
-            return "voc_esim", signals
-        if matched_roaming and not matched_esim:
-            return "voc_roaming", signals
-        if matched_esim:
-            return "voc_esim", signals
-        if matched_roaming:
-            return "voc_roaming", signals
-        return None, signals
-
     def _validate_global_trend(self, article: Dict, text_map: Dict[str, str]) -> bool:
         link = str(article.get('link', '')).lower()
         # "combined" = title + snippet + query. RSS 기사는 query에 topic_hint가 주입돼
@@ -500,22 +386,12 @@ class KeywordFilter:
         if category == "global_trend" and not self._validate_global_trend(article, text_map):
             return False
 
-        if category in {"voc_roaming", "voc_esim"}:
-            voc_category, signals = self._classify_voc(article, text_map)
-            article["matched_signals"] = signals
-            article["voc_type"] = voc_category
-            if voc_category != category:
-                article["relevance_reason"] = f"voc_mismatch:{voc_category or 'none'}"
-                return False
-            article["relevance_reason"] = "voc_match"
-            article["relevance_score"] = 100 + len(signals)
-        else:
-            relevance_score = 50 + len(article.get("matched_include_keywords", []))
-            # global_trend 시그널 워드 포함 기사에 부스트 → 정렬 상단 우선.
-            if category == "global_trend" and article.get("global_trend_signal"):
-                relevance_score += 25
-            article["relevance_score"] = relevance_score
-            article["relevance_reason"] = article.get("relevance_reason", "category_match")
+        relevance_score = 50 + len(article.get("matched_include_keywords", []))
+        # global_trend 시그널 워드 포함 기사에 부스트 → 정렬 상단 우선.
+        if category == "global_trend" and article.get("global_trend_signal"):
+            relevance_score += 25
+        article["relevance_score"] = relevance_score
+        article["relevance_reason"] = article.get("relevance_reason", "category_match")
 
         return True
 

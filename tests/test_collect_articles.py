@@ -134,12 +134,12 @@ class CollectArticlesTests(unittest.TestCase):
 
     @patch("src.pipeline.core.load_categories")
     @patch("src.pipeline.core.GoogleCollector.collect")
-    @patch("src.pipeline.core.NaverCollector.collect_from_blog")
+    @patch("src.pipeline.core.CommunityVocCollector.collect")
     @patch("src.pipeline.core.NaverCollector.collect_from_news")
     def test_collect_articles_preserves_higher_priority_category_after_cross_category_dedup(
         self,
         mock_collect_news,
-        mock_collect_blog,
+        mock_collect_digest,
         mock_collect_google,
         mock_load_categories,
     ):
@@ -161,9 +161,8 @@ class CollectArticlesTests(unittest.TestCase):
                     "priority": 0,
                     "name": "로밍 VoC",
                     "content_type": "voc",
-                    "sources": ["naver_blog"],
-                    "keywords": ["KT 로밍 후기"],
-                    "include_keywords": ["로밍", "KT 로밍"],
+                    "sources": ["community_digest"],
+                    "include_keywords": [],
                     "match_field": "title",
                     "exclude_keywords": [],
                 },
@@ -188,16 +187,19 @@ class CollectArticlesTests(unittest.TestCase):
                 "published": recent_datetime(2),
             }
         ]
-        mock_collect_blog.return_value = [
-            {
-                "title": "KT 로밍 후기, 일본 여행에서 데이터 품질 점검",
-                "snippet": "직접 사용 후기와 연결 품질을 정리했다.",
-                "link": "https://example.com/shared",
-                "source": "Naver Blog",
-                "query": "KT 로밍 후기",
-                "published": recent_datetime(1),
-            }
-        ]
+        mock_collect_digest.return_value = {
+            "voc_roaming": [
+                {
+                    "title": "KT 로밍 후기, 일본 여행에서 데이터 품질 점검",
+                    "snippet": "댓글 3 · 조회 120",
+                    "link": "https://example.com/shared",
+                    "source": "뽐뿌",
+                    "published": recent_datetime(1),
+                    "published_confidence": "date_only",
+                }
+            ],
+            "voc_esim": [],
+        }
 
         collected = collect_articles(build_settings(max_articles_per_category=5))
 
@@ -207,10 +209,10 @@ class CollectArticlesTests(unittest.TestCase):
 
     @patch("src.pipeline.core.load_categories")
     @patch("src.pipeline.core.GoogleCollector.collect")
-    @patch("src.pipeline.core.NaverCollector.collect_from_blog")
+    @patch("src.pipeline.core.CommunityVocCollector.collect")
     def test_collect_articles_sorts_missing_published_confidence_last(
         self,
-        mock_collect_blog,
+        mock_collect_digest,
         mock_collect_google,
         mock_load_categories,
     ):
@@ -221,9 +223,8 @@ class CollectArticlesTests(unittest.TestCase):
                     "priority": 1,
                     "name": "eSIM VoC",
                     "content_type": "voc",
-                    "sources": ["naver_blog"],
-                    "keywords": ["Airalo 후기"],
-                    "include_keywords": ["Airalo"],
+                    "sources": ["community_digest"],
+                    "include_keywords": [],
                     "match_field": "title",
                     "exclude_keywords": [],
                 }
@@ -239,32 +240,137 @@ class CollectArticlesTests(unittest.TestCase):
             },
         }
         mock_collect_google.return_value = []
-        mock_collect_blog.return_value = [
-            {
-                "title": "Airalo 후기",
-                "snippet": "사용 후기와 개통 팁 정리",
-                "link": "https://example.com/missing-date",
-                "source": "Naver Blog",
-                "query": "Airalo 후기",
-                "published": None,
-                "published_confidence": "missing",
-            },
-            {
-                "title": "Airalo 리뷰",
-                "snippet": "직접 사용 후기",
-                "link": "https://example.com/date-only",
-                "source": "Naver Blog",
-                "query": "Airalo 후기",
-                "published": recent_datetime(1),
-                "published_confidence": "date_only",
-            },
-        ]
+        mock_collect_digest.return_value = {
+            "voc_roaming": [],
+            "voc_esim": [
+                {
+                    "title": "Airalo 후기",
+                    "snippet": "댓글 1 · 조회 10",
+                    "link": "https://example.com/missing-date",
+                    "source": "뽐뿌",
+                    "published": None,
+                    "published_confidence": "missing",
+                },
+                {
+                    "title": "Airalo 리뷰",
+                    "snippet": "댓글 2 · 조회 20",
+                    "link": "https://example.com/date-only",
+                    "source": "뽐뿌",
+                    "published": recent_datetime(1),
+                    "published_confidence": "date_only",
+                },
+            ],
+        }
 
         collected = collect_articles(build_settings(max_articles_per_category=2))
 
         self.assertEqual(len(collected["voc_esim"]), 2)
         self.assertEqual(collected["voc_esim"][0]["link"], "https://example.com/date-only")
         self.assertEqual(collected["voc_esim"][1]["link"], "https://example.com/missing-date")
+
+    @staticmethod
+    def _community_digest_config() -> dict:
+        def voc_category(category_id: int, name: str) -> dict:
+            return {
+                "id": category_id,
+                "priority": category_id,
+                "name": name,
+                "content_type": "voc",
+                "sources": ["community_digest"],
+                "include_keywords": [],
+                "match_field": "title",
+                "exclude_keywords": [],
+            }
+
+        return {
+            "categories": {
+                "voc_roaming": voc_category(4, "로밍 VoC"),
+                "voc_esim": voc_category(5, "eSIM VoC"),
+            },
+            "filters": {
+                "blacklist_domains": [],
+                "excluded_keywords": ["이벤트"],
+                "global_trend": {},
+            },
+        }
+
+    @patch("src.pipeline.core.load_categories")
+    @patch("src.pipeline.core.CommunityVocCollector.collect")
+    def test_collect_articles_skips_time_filter_for_community_digest(
+        self,
+        mock_collect_digest,
+        mock_load_categories,
+    ):
+        mock_load_categories.return_value = self._community_digest_config()
+        mock_collect_digest.return_value = {
+            "voc_roaming": [
+                {
+                    "title": "해외로밍 오래된 글",
+                    "snippet": "댓글 1 · 조회 10",
+                    "link": "https://example.com/old-post",
+                    "source": "뽐뿌",
+                    "published": recent_datetime(24 * 10),
+                    "published_confidence": "date_only",
+                },
+            ],
+            "voc_esim": [],
+        }
+
+        collected = collect_articles(build_settings())
+
+        self.assertEqual(
+            [article["link"] for article in collected["voc_roaming"]],
+            ["https://example.com/old-post"],
+        )
+        self.assertEqual(collected["voc_roaming"][0]["content_type"], "voc")
+
+    @patch("src.pipeline.core.load_categories")
+    @patch("src.pipeline.core.CommunityVocCollector.collect")
+    def test_collect_articles_reads_digest_once_and_applies_global_excludes(
+        self,
+        mock_collect_digest,
+        mock_load_categories,
+    ):
+        mock_load_categories.return_value = self._community_digest_config()
+        mock_collect_digest.return_value = {
+            "voc_roaming": [
+                {
+                    "title": "로밍 이벤트 정리",
+                    "snippet": "댓글 1 · 조회 10",
+                    "link": "https://example.com/excluded",
+                    "source": "뽐뿌",
+                    "published": recent_datetime(1),
+                    "published_confidence": "date_only",
+                },
+            ],
+            "voc_esim": [
+                {
+                    "title": "유심사 후기",
+                    "snippet": "댓글 2 · 조회 20",
+                    "link": "https://example.com/esim",
+                    "source": "뽐뿌",
+                    "published": recent_datetime(1),
+                    "published_confidence": "date_only",
+                },
+            ],
+        }
+
+        collected = collect_articles(build_settings())
+
+        mock_collect_digest.assert_called_once_with()
+        self.assertEqual(collected["voc_roaming"], [])
+        self.assertEqual(
+            [article["link"] for article in collected["voc_esim"]],
+            ["https://example.com/esim"],
+        )
+
+    @patch("src.pipeline.core.load_categories")
+    def test_collect_articles_survives_unconfigured_redis(self, mock_load_categories):
+        mock_load_categories.return_value = self._community_digest_config()
+
+        collected = collect_articles(build_settings())
+
+        self.assertEqual(collected, {"voc_roaming": [], "voc_esim": []})
 
     @patch("src.pipeline.core.load_categories")
     @patch("src.pipeline.core.GoogleCollector.collect")

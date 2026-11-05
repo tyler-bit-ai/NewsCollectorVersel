@@ -292,78 +292,52 @@ class KeywordFilterTests(unittest.TestCase):
 
         self.assertFalse(keyword_filter.validate(article, category="esim_industry"))
 
-    def test_voc_roaming_keeps_carrier_roaming_priority_articles(self):
+    def test_voc_categories_accept_titles_without_word_boundary(self):
+        keyword_filter = self.build_filter()
+        for category, title in (
+            ("voc_roaming", "해외로밍 데이터로밍 질문"),
+            ("voc_esim", "로밍도깨비 가격표"),
+        ):
+            article = {
+                "title": title,
+                "snippet": "댓글 3 · 조회 120",
+                "link": "https://example.com/community-post",
+                "source": "뽐뿌",
+            }
+
+            self.assertTrue(keyword_filter.validate(article, category=category), title)
+            self.assertEqual(article["relevance_score"], 50)
+            self.assertEqual(article["relevance_reason"], "category_match")
+
+    def test_voc_categories_no_longer_set_voc_signals(self):
         keyword_filter = self.build_filter()
         article = {
-            "title": "KT 로밍 eSIM 후기, 일본에서 데이터 로밍 연결 안정적",
-            "snippet": "eSIM 설정과 로밍 속도, 연결 품질을 함께 정리한 리뷰",
-            "link": "https://example.com/dual-signal",
-            "source": "Naver Blog",
-        }
-
-        self.assertTrue(keyword_filter.validate(article, category="voc_roaming"))
-        self.assertEqual(article["voc_type"], "voc_roaming")
-        self.assertIn("carrier_roaming:kt 로밍", article["matched_signals"])
-
-    def test_voc_esim_prioritizes_esim_brand_articles(self):
-        keyword_filter = self.build_filter()
-        article = {
-            "title": "로밍도깨비 사용 후기, 일본 여행에서 데이터 로밍 연결 안정적",
-            "snippet": "설정과 로밍 속도, 연결 품질을 함께 정리한 리뷰",
-            "link": "https://example.com/roamingdokkaebi-review",
-            "source": "Naver Blog",
-        }
-
-        self.assertTrue(keyword_filter.validate(article, category="voc_esim"))
-        self.assertEqual(article["voc_type"], "voc_esim")
-        self.assertIn("esim_brand:로밍도깨비", article["matched_signals"])
-
-    def test_voc_esim_accepts_esim_only_article(self):
-        keyword_filter = self.build_filter()
-        article = {
-            "title": "Airalo eSIM 후기, 유럽 여행에서 개통과 설정이 간단했다",
-            "snippet": "eSIM 사용기와 개통 경험을 정리했다.",
-            "link": "https://example.com/airalo-review",
-            "source": "Naver Blog",
+            "title": "KT 로밍 eSIM 후기",
+            "snippet": "댓글 3 · 조회 120",
+            "link": "https://example.com/community-post",
+            "source": "뽐뿌",
         }
 
         self.assertTrue(keyword_filter.validate(article, category="voc_esim"))
-        self.assertEqual(article["voc_type"], "voc_esim")
+        self.assertNotIn("voc_type", article)
+        self.assertNotIn("matched_signals", article)
 
-    def test_voc_uses_snippet_when_title_lacks_review_wording(self):
+    def test_voc_categories_still_apply_global_excluded_keywords(self):
         keyword_filter = self.build_filter()
         article = {
-            "title": "Airalo 사용법 정리",
-            "snippet": "직접 사용 후기와 개통 팁을 정리했다.",
-            "query": "Airalo 후기",
-            "link": "https://example.com/airalo-guide",
-            "source": "Naver Blog",
+            "title": "로밍 쿠폰 이벤트 정리",
+            "snippet": "댓글 3 · 조회 120",
+            "link": "https://example.com/community-post",
+            "source": "뽐뿌",
         }
 
-        self.assertTrue(keyword_filter.validate(article, category="voc_esim"))
-        self.assertEqual(article["voc_type"], "voc_esim")
+        self.assertFalse(keyword_filter.validate(article, category="voc_roaming"))
 
-    def test_voc_does_not_use_query_as_review_signal(self):
-        keyword_filter = self.build_filter()
-        article = {
-            "title": "Airalo eSIM 가격표 정리",
-            "snippet": "국가별 데이터 용량과 가격을 비교했다.",
-            "query": "Airalo 후기",
-            "link": "https://example.com/airalo-price",
-            "source": "Naver Blog",
-        }
+    def test_voc_categories_use_community_digest_only(self):
+        for category in ("voc_roaming", "voc_esim"):
+            rule = self.category_rules[category]
 
-        self.assertFalse(keyword_filter.validate(article, category="voc_esim"))
-        self.assertEqual(article["voc_type"], None)
-
-    def test_voc_esim_rejects_roaming_priority_article(self):
-        keyword_filter = self.build_filter()
-        article = {
-            "title": "KT 로밍 eSIM 후기, 일본에서 로밍 속도와 통화 품질 점검",
-            "snippet": "eSIM 개통 후 로밍 연결과 데이터 로밍 품질을 리뷰했다.",
-            "link": "https://example.com/kt-roaming-esim",
-            "source": "Naver Blog",
-        }
-
-        self.assertFalse(keyword_filter.validate(article, category="voc_esim"))
-        self.assertEqual(article["voc_type"], "voc_roaming")
+            self.assertEqual(rule["sources"], ["community_digest"])
+            self.assertEqual(rule["include_keywords"], [])
+            self.assertNotIn("keywords", rule)
+            self.assertNotIn("rss_feeds", rule)

@@ -380,44 +380,9 @@ categories:
     priority: 0
     name: "로밍 VoC"
     content_type: "voc"
-    sources: ["naver_blog", "rss_feed"]
-    rss_feeds:
-      - url: "https://www.ppomppu.co.kr/rss.php?id=phone"
-        name: "뽐뿌 휴대폰"
-        weight: 1.0
-        limit: 30
-        topic_hint: "로밍 후기"
-        article_type: "domestic"
-    keywords:
-      - "로밍 후기"
-      - "로밍 리뷰"
-      - "로밍 추천"
-      - "로밍 재구매"
-      - "SKT 로밍 후기"
-      - "SKT 로밍 리뷰"
-      - "SKT 로밍 추천"
-      - "KT 로밍 후기"
-      - "KT 로밍 리뷰"
-      - "KT 로밍 추천"
-      - "LGU+ 로밍 후기"
-      - "LGU+ 로밍 리뷰"
-      - "LGU+ 로밍 추천"
-      - "LG유플러스 로밍 후기"
-      - "LG유플러스 로밍 리뷰"
-      - "LG유플러스 로밍 추천"
-      - "데이터 로밍 후기"
-      - "로밍 요금제 후기"
-    include_keywords:
-      - "로밍"
-      - "데이터 로밍"
-      - "로밍 요금제"
-      - "해외 로밍"
-      - "통화 로밍"
-      - "baro 로밍"
-      - "SKT 로밍"
-      - "KT 로밍"
-      - "LGU+ 로밍"
-      - "LG유플러스 로밍"
+    sources: ["community_digest"]
+    # 분류·관문은 CommunityVocCollector의 키워드 분배가 담당한다.
+    include_keywords: []
     match_field: "title"
     exclude_keywords: []
 
@@ -426,51 +391,9 @@ categories:
     priority: 1
     name: "eSIM VoC"
     content_type: "voc"
-    sources: ["naver_blog", "rss_feed"]
-    rss_feeds:
-      - url: "https://www.ppomppu.co.kr/rss.php?id=phone"
-        name: "뽐뿌 휴대폰"
-        weight: 1.0
-        limit: 30
-        topic_hint: "eSIM 후기"
-        article_type: "domestic"
-    keywords:
-      - "도시락 eSIM후기"
-      - "도시락eSIM 리뷰"
-      - "도시락eSIM 추천"
-      - "말톡 후기"
-      - "말톡 리뷰"
-      - "말톡 추천"
-      - "유심사 후기"
-      - "유심사 리뷰"
-      - "이지이심 후기"
-      - "이지이심 리뷰"
-      - "eSIM 후기"
-      - "eSIM 리뷰"
-      - "eSIM 추천"
-      - "eSIM 재구매"
-      - "로밍도깨비 후기"
-      - "로밍도깨비 추천"
-      - "핀다이렉트 eSIM후기"
-      - "핀다이렉트 eSIM 추천"
-      - "에어알로 후기"
-      - "에어알로 리뷰"
-      - "Airalo 후기"
-      - "Airalo 리뷰"
-    include_keywords:
-      - "eSIM"
-      - "esim"
-      - "이심"
-      - "유심사"
-      - "도시락 eSIM"
-      - "도시락eSIM"
-      - "말톡"
-      - "에어알로"
-      - "Airalo"
-      - "로밍도깨비"
-      - "로밍 도깨비"
-      - "핀다이렉트 eSIM"
-      - "로밍도깨비 eSIM"
+    sources: ["community_digest"]
+    # 분류·관문은 CommunityVocCollector의 키워드 분배가 담당한다.
+    include_keywords: []
     match_field: "title"
     exclude_keywords: []
 
