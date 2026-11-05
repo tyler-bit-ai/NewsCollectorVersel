@@ -55,7 +55,7 @@ tests/                    외부 API 비의존 단위 테스트
 
 ## Environment Variables
 - 필수 API 키: `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `GOOGLE_API_KEY`, `SEARCH_ENGINE_ID`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`
-- LLM(Z.ai GLM, OpenAI 호환 API): `OPENAI_API_KEY`에 Z.ai API 키, `OPENAI_BASE_URL=https://api.z.ai/api/paas/v4/`, `OPENAI_MODEL_BASIC=glm-5.3-flash`, `OPENAI_MODEL_ADVANCED=glm-4.6`
+- LLM(Z.ai GLM, OpenAI 호환 API): `OPENAI_API_KEY`에 Z.ai API 키, `OPENAI_BASE_URL=https://api.z.ai/api/coding/paas/v4/`(GLM Coding Plan 구독 포함 엔드포인트), `OPENAI_MODEL_BASIC=glm-5.3-flash`, `OPENAI_MODEL_ADVANCED=glm-4.6`
 - 커뮤니티 VoC: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (`community_voc:YYYYMMDD` 키 조회, 미설정이거나 키가 없으면 VoC 섹션 없이 진행)
 - 메일 발송: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `REPORT_RECIPIENTS`
 - 선택 항목: `SAFETY_ALERT_RECIPIENTS`, `ENABLE_0404_ALERTS`, `DRY_RUN`, `DEBUG_MODE`
