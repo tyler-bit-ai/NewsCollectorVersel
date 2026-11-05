@@ -72,7 +72,7 @@ class EmailFormatter:
             lines.append(f"[권고] {self._truncate(str(rec), 110)}")
         if not lines:
             lines.append("요약 데이터가 없습니다.")
-        return "\n".join(f"<li>{html_lib.escape(line)}</li>" for line in lines[:3])
+        return "\n".join(f'<li style="font-size:13px; line-height:1.7; color:#526478; margin-bottom:6px;">{html_lib.escape(line)}</li>' for line in lines[:3])
 
     def _format_paragraph(self, text: str) -> str:
         escaped = html_lib.escape(str(text or ""))
@@ -110,12 +110,14 @@ class EmailFormatter:
         for index, (key, name) in enumerate(self.CATEGORY_NAMES.items(), start=1):
             raw_articles = data.get(f"section_{key}", [])
             articles = [item for item in raw_articles if isinstance(item, dict)]
+            if not articles:
+                continue
             cells.append(self._render_category_cell(index=index, name=name, category_key=key, articles=articles))
 
         rows = []
         for start in range(0, len(cells), 2):
             left = cells[start]
-            right = cells[start + 1] if start + 1 < len(cells) else '<td class="category-column">&nbsp;</td>'
+            right = cells[start + 1] if start + 1 < len(cells) else '<td width="50%" valign="top">&nbsp;</td>'
             rows.append(
                 f"""
                 <tr>
@@ -154,8 +156,8 @@ class EmailFormatter:
         <td width="50%" style="padding: 10px 5px 0 0;" valign="top">
             <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                 <tr>
-                    <td class="category-head" style="padding: 14px 16px;">
-                        <p class="category-title">{html_lib.escape(name)} <span class="count">({len(articles)}건)</span></p>
+                    <td class="category-head" bgcolor="#fbf4f8" style="padding: 12px 16px; border-bottom: 1px solid #ece2e8; background-color:#fbf4f8;">
+                        <p class="category-title" style="margin:0; font-size:16px; font-weight:bold; color:#191c1d;">{html_lib.escape(name)} <span style="font-size:11px; color:#707a84; font-weight:normal;">({len(articles)}건)</span></p>
                     </td>
                 </tr>
                 <tr>
@@ -197,10 +199,10 @@ class EmailFormatter:
         return False
 
     def _render_roaming_notice_card(self, name: str, notices: List[Dict]) -> str:
-        title_html = f'<p class="signal-title" style="margin-bottom: 8px;">{html_lib.escape(name)}</p>'
+        title_html = f'<p style="margin:0 0 8px 0; font-size:14px; font-weight:bold; color:#191c1d;">{html_lib.escape(name)}</p>'
 
         if not notices:
-            body = '<p class="empty-text">공지사항이 없습니다.</p>'
+            body = '<p style="margin:0; font-size:12px; color:#758291;">공지사항이 없습니다.</p>'
         else:
             items = []
             for notice in notices:
@@ -209,17 +211,18 @@ class EmailFormatter:
                 if self._is_new_notice(notice):
                     items.append(
                         f'<li style="margin-bottom: 6px;">'
-                        f'<span style="color:#ff4d3d; font-size:11px; '
+                        f'<span style="color:#ff4d3d; font-size:12px; '
                         f'font-weight:bold; margin-right:4px;">[NEW]</span>'
-                        f'<a href="{link}" class="more-title" '
-                        f'style="text-decoration:none; font-weight:bold; color:#1a1a1a;">{title}</a></li>'
+                        f'<a href="{link}" '
+                        f'style="font-size:14px; font-weight:bold; color:#1a1a1a; '
+                        f'text-decoration:underline;">{title}</a></li>'
                     )
                 else:
-                    items.append(f'<li><a href="{link}" class="more-title" style="text-decoration: none;">{title}</a></li>')
+                    items.append(f'<li style="margin-bottom:6px;"><a href="{link}" style="font-size:14px; font-weight:bold; color:#1a1a1a; text-decoration:underline;">{title}</a></li>')
             body = f'<ul class="more-list">{" ".join(items)}</ul>'
 
         return f"""
-        <td class="signal-card" style="padding: 14px;">
+        <td class="signal-card" width="33.33%" valign="top" bgcolor="#ffffff" style="padding: 14px; background-color:#ffffff; border:1px solid #e6ebee;">
             {title_html}
             {body}
         </td>
@@ -240,10 +243,10 @@ class EmailFormatter:
         <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-bottom: 1px solid #edf0f2;">
             <tr>
                 <td style="padding: 10px 0;">
-                    <p class="article-source" style="margin-bottom: 6px;">{section_hint}{' | ' + source if source else ''}</p>
-                    <p class="article-title" style="margin-bottom: 6px;">{title}</p>
-                    <p class="article-summary" style="margin-bottom: 8px;">{summary}</p>
-                    <a href="{link}" class="link">원문 보기</a>
+                    <p style="margin:0 0 6px 0; font-size:11px; color:#707a84; line-height:1.5;">{section_hint}{' | ' + source if source else ''}</p>
+                    <p style="margin:0 0 6px 0; font-size:14px; font-weight:bold; color:#191c1d; line-height:1.45;">{title}</p>
+                    <p style="margin:0 0 8px 0; font-size:13px; color:#526478; line-height:1.7;">{summary}</p>
+                    <a href="{link}" style="color:#b90064; font-size:12px; font-weight:bold; text-decoration:underline;"><u>원문 보기</u></a>
                 </td>
             </tr>
         </table>
@@ -260,7 +263,7 @@ class EmailFormatter:
                 title_raw, _ = ensure_global_trend_korean_text(title_raw, "")
             title = html_lib.escape(title_raw)
             link = html_lib.escape(str(article.get("link", "")))
-            items.append(f'<li><a href="{link}" class="link">{title}</a></li>')
+            items.append(f'<li style="margin-bottom:5px;"><a href="{link}" style="color:#b90064; font-size:12px; font-weight:bold; text-decoration:underline;">{title}</a></li>')
 
         if not items:
             return ""
@@ -269,7 +272,7 @@ class EmailFormatter:
         <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-top: 1px solid #edf0f2;">
             <tr>
                 <td style="padding-top: 10px;">
-                    <p class="more-title" style="margin-bottom: 6px;">기타 {len(items)}건</p>
+                    <p style="margin:0 0 6px 0; font-size:12px; font-weight:bold; color:#36485b;">기타 {len(items)}건</p>
                     <ol class="more-list">{''.join(items)}</ol>
                 </td>
             </tr>

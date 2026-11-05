@@ -77,23 +77,19 @@
             background-color: #f3f4f5;
             border: 1px solid #e3e7ea;
         }
-        .section-kicker {
-            color: #5e6b78;
-            font-size: 10px;
-            line-height: 1.4;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .section-head {
+            background-color: #b90064;
         }
-        .section-title {
-            color: #191c1d;
-            font-size: 19px;
+        .section-head-title {
+            color: #ffffff;
+            font-size: 14px;
             line-height: 1.3;
             font-weight: bold;
         }
         .panel {
             background-color: #ffffff;
             border: 1px solid #e6ebee;
+            border-left: 4px solid #b90064;
         }
         .summary-list,
         .more-list {
@@ -103,33 +99,20 @@
         .summary-list li,
         .more-list li {
             color: #526478;
-            font-size: 12px;
+            font-size: 13px;
             line-height: 1.7;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         .signal-card {
             width: 33.33%;
             background-color: #ffffff;
             border: 1px solid #e6ebee;
         }
-        .signal-label {
-            color: #b90064;
-            font-size: 10px;
-            line-height: 1.4;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
         .signal-title {
             color: #191c1d;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.3;
             font-weight: bold;
-        }
-        .signal-copy {
-            color: #526478;
-            font-size: 12px;
-            line-height: 1.65;
         }
         .category-card {
             background-color: #ffffff;
@@ -139,14 +122,6 @@
             background-color: #fbf4f8;
             border-bottom: 1px solid #ece2e8;
         }
-        .category-label {
-            color: #b90064;
-            font-size: 10px;
-            line-height: 1.4;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
         .category-title {
             color: #191c1d;
             font-size: 16px;
@@ -154,16 +129,14 @@
             font-weight: bold;
         }
         .count {
-            color: #5e6b78;
+            color: #707a84;
             font-size: 11px;
             font-weight: normal;
         }
         .article-source {
-            color: #758291;
-            font-size: 10px;
+            color: #707a84;
+            font-size: 11px;
             line-height: 1.5;
-            font-weight: bold;
-            text-transform: uppercase;
         }
         .article-title {
             color: #191c1d;
@@ -173,19 +146,19 @@
         }
         .article-summary {
             color: #526478;
-            font-size: 11px;
+            font-size: 13px;
             line-height: 1.7;
         }
         .link {
             color: #b90064;
-            font-size: 11px;
+            font-size: 12px;
             line-height: 1.5;
             font-weight: bold;
-            text-decoration: none;
+            text-decoration: underline;
         }
         .more-title {
             color: #36485b;
-            font-size: 11px;
+            font-size: 12px;
             line-height: 1.5;
             font-weight: bold;
         }
@@ -208,13 +181,13 @@
             <td align="center" style="padding: 20px 0;">
                 <table class="container" width="960" cellpadding="0" cellspacing="0" border="0" role="presentation">
                     <tr>
-                        <td class="topbar" style="padding: 18px 30px;">
-                            <p class="brand">SK Telecom Newsroom</p>
-                            <p class="brand-sub">SKT 로밍팀 Daily Intelligence Report</p>
+                        <td class="topbar" bgcolor="#ffffff" style="padding: 18px 30px;">
+                            <p class="brand" style="color:#b90064; font-size:18px; font-weight:bold;">SK Telecom Newsroom</p>
+                            <p class="brand-sub" style="color:#7a8795; font-size:10px;">SKT 로밍팀 Daily Intelligence Report</p>
                         </td>
                     </tr>
                     <tr>
-                        <td class="hero" style="padding: 28px 30px;">
+                        <td class="hero" bgcolor="#f8f3f6" style="padding: 28px 30px;">
                             <p class="eyebrow" style="margin-bottom: 12px;">Daily Intelligence</p>
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                                 <tr>
@@ -231,11 +204,15 @@
                     </tr>
                     <tr>
                         <td style="padding: 12px 14px 0;">
-                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#f3f4f5" style="background-color:#f3f4f5; border:1px solid #e3e7ea;">
+                                <tr>
+                                    <td class="section-head" bgcolor="#b90064" height="36" style="padding: 9px 16px; background-color:#b90064;">
+                                        <p class="section-head-title" style="color:#ffffff; font-size:14px; font-weight:bold; margin:0;">EXECUTIVE SUMMARY</p>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td style="padding: 14px;">
-                                        <p class="section-kicker" style="margin-bottom: 8px;">Executive Summary</p>
-                                        <table class="panel" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                                        <table class="panel" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#ffffff" style="background-color:#ffffff; border:1px solid #e6ebee; border-left:4px solid #b90064;">
                                             <tr>
                                                 <td style="padding: 14px;">
                                                     <ul class="summary-list">{{TODAY_BRIEF}}</ul>
@@ -249,10 +226,14 @@
                     </tr>
                     <tr>
                         <td style="padding: 12px 14px 0;">
-                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#f3f4f5" style="background-color:#f3f4f5; border:1px solid #e3e7ea;">
+                                <tr>
+                                    <td class="section-head" bgcolor="#b90064" height="36" style="padding: 9px 16px; background-color:#b90064;">
+                                        <p class="section-head-title" style="color:#ffffff; font-size:14px; font-weight:bold; margin:0;">로밍 공지사항</p>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td style="padding: 14px;">
-                                        <p class="section-kicker" style="margin-bottom: 8px;">로밍 공지사항</p>
                                         <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                                             <tr>
                                                 {{ROAMING_NOTICE_CARDS}}
@@ -265,10 +246,14 @@
                     </tr>
                     <tr>
                         <td style="padding: 12px 14px 0;">
-                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                            <table class="section-shell" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#f3f4f5" style="background-color:#f3f4f5; border:1px solid #e3e7ea;">
+                                <tr>
+                                    <td class="section-head" bgcolor="#b90064" height="36" style="padding: 9px 16px; background-color:#b90064;">
+                                        <p class="section-head-title" style="color:#ffffff; font-size:14px; font-weight:bold; margin:0;">CATEGORY VIEW</p>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td style="padding: 14px;">
-                                        <p class="section-kicker" style="margin-bottom: 8px;">Category View</p>
                                         <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                                             {{CATEGORY_SECTIONS}}
                                         </table>
