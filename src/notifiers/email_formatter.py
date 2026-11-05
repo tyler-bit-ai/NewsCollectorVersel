@@ -209,9 +209,8 @@ class EmailFormatter:
                 if self._is_new_notice(notice):
                     items.append(
                         f'<li style="margin-bottom: 6px;">'
-                        f'<span style="display:inline-block; background:#ff4d3d; color:#ffffff; '
-                        f'font-size:10px; font-weight:bold; line-height:1; padding:3px 6px; '
-                        f'border-radius:8px; margin-right:5px; vertical-align:middle;">NEW</span>'
+                        f'<span style="color:#ff4d3d; font-size:11px; '
+                        f'font-weight:bold; margin-right:4px;">[NEW]</span>'
                         f'<a href="{link}" class="more-title" '
                         f'style="text-decoration:none; font-weight:bold; color:#1a1a1a;">{title}</a></li>'
                     )
