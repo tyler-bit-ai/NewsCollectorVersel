@@ -3,12 +3,15 @@ HTML 이메일 생성
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 import html as html_lib
 from pathlib import Path
 from typing import Dict, List
 
 from src.utils.helpers import ensure_global_trend_korean_text
+
+# 신규 공지 강조 기준: 게시 후 7일
+NEW_NOTICE_PERIOD = timedelta(days=7)
 
 
 class EmailFormatter:
@@ -174,6 +177,25 @@ class EmailFormatter:
             cells.append(self._render_roaming_notice_card(name=name, notices=notices))
         return '<td width="10"></td>'.join(cells)
 
+    @staticmethod
+    def _is_new_notice(notice: Dict) -> bool:
+        """게시일이 최근 7일 이내면 True (파싱 실패/미상은 False)."""
+        posted = notice.get("posted_at")
+        if posted is None:
+            return False
+        try:
+            if isinstance(posted, str):
+                posted = datetime.fromisoformat(posted.replace("Z", "+00:00"))
+            if isinstance(posted, datetime):
+                if posted.tzinfo is not None:
+                    posted = posted.astimezone(timezone.utc).replace(tzinfo=None)
+                return datetime.utcnow() - posted <= NEW_NOTICE_PERIOD
+            if isinstance(posted, date):
+                return date.today() - posted <= NEW_NOTICE_PERIOD
+        except (ValueError, TypeError):
+            return False
+        return False
+
     def _render_roaming_notice_card(self, name: str, notices: List[Dict]) -> str:
         title_html = f'<p class="signal-title" style="margin-bottom: 8px;">{html_lib.escape(name)}</p>'
 
@@ -184,8 +206,18 @@ class EmailFormatter:
             for notice in notices:
                 title = html_lib.escape(str(notice.get("title", "")))
                 link = html_lib.escape(str(notice.get("url", "")))
-                items.append(f'<li><a href="{link}" class="more-title" style="text-decoration: none;">{title}</a></li>')
-            body = f'<ul class="more-list">{"".join(items)}</ul>'
+                if self._is_new_notice(notice):
+                    items.append(
+                        f'<li style="margin-bottom: 6px;">'
+                        f'<span style="display:inline-block; background:#ff4d3d; color:#ffffff; '
+                        f'font-size:10px; font-weight:bold; line-height:1; padding:3px 6px; '
+                        f'border-radius:8px; margin-right:5px; vertical-align:middle;">NEW</span>'
+                        f'<a href="{link}" class="more-title" '
+                        f'style="text-decoration:none; font-weight:bold; color:#1a1a1a;">{title}</a></li>'
+                    )
+                else:
+                    items.append(f'<li><a href="{link}" class="more-title" style="text-decoration: none;">{title}</a></li>')
+            body = f'<ul class="more-list">{" ".join(items)}</ul>'
 
         return f"""
         <td class="signal-card" style="padding: 14px;">

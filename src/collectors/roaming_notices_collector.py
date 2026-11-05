@@ -14,7 +14,8 @@ CARRIER_DISPLAY_NAMES: Dict[str, str] = {
 }
 
 _NOTICES_QUERY = """
-    SELECT c.code AS carrier_code, n.title, n.url
+    SELECT c.code AS carrier_code, n.title, n.url,
+           COALESCE(n.published_at, n.first_seen_at) AS posted_at
     FROM notices n
     JOIN carriers c ON c.id = n.carrier_id
     WHERE n.is_active = true
@@ -54,6 +55,6 @@ def fetch_roaming_notices(database_url: str | None, limit_per_carrier: int = 3) 
         code = row["carrier_code"]
         if code not in result or len(result[code]) >= limit_per_carrier:
             continue
-        result[code].append({"title": row["title"], "url": row["url"]})
+        result[code].append({"title": row["title"], "url": row["url"], "posted_at": row["posted_at"]})
 
     return result
