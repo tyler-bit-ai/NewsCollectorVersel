@@ -106,54 +106,29 @@ class EmailFormatter:
         return f'<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">{"".join(rows)}</table>'
 
     def _generate_category_sections(self, data: Dict) -> str:
-        cells = []
+        rows = []
         for index, (key, name) in enumerate(self.CATEGORY_NAMES.items(), start=1):
             raw_articles = data.get(f"section_{key}", [])
             articles = [item for item in raw_articles if isinstance(item, dict)]
             if not articles:
                 continue
-            cells.append(self._render_category_cell(index=index, name=name, category_key=key, articles=articles))
-
-        rows = []
-        for start in range(0, len(cells), 2):
-            left = cells[start]
-            right = cells[start + 1] if start + 1 < len(cells) else '<td width="50%" valign="top">&nbsp;</td>'
             rows.append(
                 f"""
                 <tr>
-                    {left}
-                    {right}
+                    {self._render_category_cell(index=index, name=name, category_key=key, articles=articles)}
                 </tr>
                 """
             )
         return "\n".join(rows)
 
     def _render_category_cell(self, index: int, name: str, category_key: str, articles: List[Dict]) -> str:
-        if not articles:
-            return f"""
-            <td width="50%" style="padding: 10px 5px 0 0;" valign="top">
-                <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
-                    <tr>
-                        <td class="category-head" style="padding: 14px 16px;">
-                            <p class="category-title">{html_lib.escape(name)} <span class="count">(0건)</span></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 12px 16px 14px;">
-                            <p class="empty-text">데이터가 없습니다.</p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-            """
-
         top_articles = articles[: self.top_n]
         remaining = articles[self.top_n :]
         top_html = [self._render_article_card(article, category_key) for article in top_articles]
         more_html = self._render_more_links(remaining, category_key=category_key)
 
         return f"""
-        <td width="50%" style="padding: 10px 5px 0 0;" valign="top">
+        <td width="100%" style="padding: 10px 0 0 0;" valign="top">
             <table class="category-card" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                 <tr>
                     <td class="category-head" bgcolor="#fbf4f8" style="padding: 12px 16px; border-bottom: 1px solid #ece2e8; background-color:#fbf4f8;">
