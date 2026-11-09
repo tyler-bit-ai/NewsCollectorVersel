@@ -212,13 +212,17 @@ class EmailFormatter:
         title = html_lib.escape(title_raw)
         summary = html_lib.escape(self._truncate(summary_raw, self.summary_max_chars))
         link = html_lib.escape(str(article.get("link", "")))
-        section_hint = "VoC 하이라이트" if category_key.startswith("voc_") else "뉴스 하이라이트"
+        meta_line = (
+            f'<p style="margin:0 0 6px 0; font-size:11px; color:#707a84; line-height:1.5;">{source}</p>'
+            if source
+            else ""
+        )
 
         return f"""
         <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-bottom: 1px solid #edf0f2;">
             <tr>
                 <td style="padding: 10px 0;">
-                    <p style="margin:0 0 6px 0; font-size:11px; color:#707a84; line-height:1.5;">{section_hint}{' | ' + source if source else ''}</p>
+                    {meta_line}
                     <p style="margin:0 0 6px 0; font-size:14px; font-weight:bold; color:#191c1d; line-height:1.45;">{title}</p>
                     <p style="margin:0 0 8px 0; font-size:13px; color:#526478; line-height:1.7;">{summary}</p>
                     <a href="{link}" style="color:#b90064; font-size:12px; font-weight:bold; text-decoration:underline;"><u>원문 보기</u></a>
