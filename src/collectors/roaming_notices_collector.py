@@ -9,6 +9,7 @@ from __future__ import annotations
 import html
 import logging
 import re
+import time
 from typing import Dict, List
 
 import requests
@@ -33,6 +34,7 @@ _HEADERS = {
 _SKT_LIST_URL = "https://m.tworld.co.kr/customer/svc-info/notice?category=roaming"
 _KT_LIST_URL = "https://globalroaming.kt.com/news/list?gp=1&sp=1&type=&val="
 _LGU_LIST_URL = "https://www.lguplus.com/plan/roaming/support/notice"
+_LGU_LIST_URLS = [_LGU_LIST_URL, _LGU_LIST_URL + "?pageNo=1"]
 
 _KT_ROW = re.compile(
     r'<td class="left">\s*<a href="(/news/view\?idx=\d+[^"]*)"[^>]*>(.*?)</a>\s*</td>\s*'
@@ -55,10 +57,35 @@ def _strip_tags(text: str) -> str:
     return html.unescape(re.sub(r"<[^>]+>", "", text)).strip()
 
 
-def _fetch(url: str) -> str:
-    resp = requests.get(url, headers=_HEADERS, timeout=15)
-    resp.raise_for_status()
-    return resp.text
+_UA_VARIANTS = [
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+]
+
+
+def _fetch(url: str, attempts: int = 3, timeout: int = 30) -> str:
+    """UA를 바꿔가며 재시도한다 (Vercel 데이터센터 IP 차단/타임아웃 완화용)."""
+    last_exc: Exception | None = None
+    for i in range(attempts):
+        headers = {
+            "User-Agent": _UA_VARIANTS[i % len(_UA_VARIANTS)],
+            "Accept-Language": "ko,en;q=0.8",
+        }
+        try:
+            resp = requests.get(url, headers=headers, timeout=timeout)
+            resp.raise_for_status()
+            if resp.text.strip():
+                return resp.text
+            last_exc = RuntimeError("empty body")
+        except Exception as exc:  # noqa: BLE001 - 통신사별 격리 목적
+            last_exc = exc
+            logger.warning("fetch attempt %d/%d failed for %s: %s", i + 1, attempts, url, exc)
+        time.sleep(2 * (i + 1))
+    raise last_exc if last_exc else RuntimeError("fetch failed")
 
 
 def _collect_kt(limit: int) -> List[Dict[str, str]]:
@@ -90,7 +117,16 @@ def _collect_skt(limit: int) -> List[Dict[str, str]]:
 
 
 def _collect_lgu(limit: int) -> List[Dict[str, str]]:
-    body = _fetch(_LGU_LIST_URL)
+    body = ""
+    errors: list[str] = []
+    for url in _LGU_LIST_URLS:
+        try:
+            body = _fetch(url)
+            break
+        except Exception as exc:  # noqa: BLE001 - 대체 URL 폴백
+            errors.append(f"{url} -> {exc}")
+    if not body:
+        raise RuntimeError("; ".join(errors))
     rows = [
         {
             "title": _strip_tags(title),
