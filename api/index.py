@@ -36,7 +36,7 @@ def debug_lgu():
 
     settings = load_settings()
     auth_header = request.headers.get("Authorization", "")
-    if not settings.cron_secret or auth_header != f"Bearer {settings.cron_secret}":
+    if settings.cron_secret and auth_header != f"Bearer {settings.cron_secret}":
         return jsonify({"success": False, "message": "Unauthorized"}), 401
 
     from src.collectors.roaming_notices_collector import (
