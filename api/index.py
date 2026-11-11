@@ -70,4 +70,19 @@ def debug_lgu():
         collect = [{"posted_at": r["posted_at"], "title": r["title"][:50]} for r in rows]
     except Exception as exc:  # noqa: BLE001
         collect = repr(exc)[:200]
-    return jsonify({"success": True, "egress": results, "collect_lgu": collect})
+    jina = None
+    try:
+        jr = _requests.get(
+            "https://r.jina.ai/" + _LGU_LIST_URL,
+            headers={"User-Agent": _UA_VARIANTS[0]},
+            timeout=40,
+        )
+        jina = {
+            "status": jr.status_code,
+            "len": len(jr.text or ""),
+            "rows": jr.text.count("| 공지 | ["),
+            "head": (jr.text or "")[:100],
+        }
+    except Exception as exc:  # noqa: BLE001
+        jina = repr(exc)[:200]
+    return jsonify({"success": True, "egress": results, "collect_lgu": collect, "jina": jina})
