@@ -11,6 +11,7 @@ import yaml
 
 from src.analyzers.insight_generator import InsightGenerator
 from src.analyzers.summarizer import Summarizer
+from src.collectors.appstore_review_collector import AppStoreReviewCollector
 from src.collectors.community_voc_collector import CommunityVocCollector
 from src.collectors.google_collector import GoogleCollector
 from src.collectors.mofa_0404_collector import Mofa0404Collector
@@ -122,6 +123,10 @@ def collect_articles(
             redis_url=settings.cache.upstash_redis_url,
             redis_token=settings.cache.upstash_redis_token,
         ).collect()
+        # 앱스토어 리뷰 VoC 추가(2026-11-14 도입). 시간 필터를 거치지 않는
+        # 커뮤니티 다이제스트와 같은 경로로 합친다.
+        for bucket, review_rows in AppStoreReviewCollector().collect().items():
+            community_digest.setdefault(bucket, []).extend(review_rows)
 
     for category_key, category_config in categories.items():
         logger.info("[%s] %s", category_config["id"], category_config["name"])
