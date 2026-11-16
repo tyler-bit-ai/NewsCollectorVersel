@@ -51,6 +51,12 @@ _LGU_ROW = re.compile(
     r'.*?class="c-cell-date">\s*(\d{4}-\d{2}-\d{2})',
     re.S,
 )
+# r.jina.ai 마크다운 폴백용: "| 공지 | [제목](url) | YYYY-MM-DD |" (고정 공지는 [ 앞에 '중요' 접두)
+_JINA_PREFIX = "https://r.jina.ai/"
+_LGU_MD_ROW = re.compile(
+    r"\|\s*공지\s*\|\s*(?:중요)?\s*(.+?)\]\((https://www\.lguplus\.com/plan/roaming/support/notice/\d+[^)]*)\)"
+    r"\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|"
+)
 
 
 def _strip_tags(text: str) -> str:
@@ -116,27 +122,47 @@ def _collect_skt(limit: int) -> List[Dict[str, str]]:
     return rows[:limit]
 
 
+def _collect_lgu_via_jina(limit: int) -> List[Dict[str, str]]:
+    """r.jina.ai 프록시 폴백 — 해외 데이터센터 IP(Vercel)에서 lguplus.com이
+    Cloudflare 403으로 상시 차단될 때의 검증된 우회 경로(2026-11-11 실측)."""
+    body = _fetch(_JINA_PREFIX + _LGU_LIST_URL, attempts=2, timeout=40)
+    rows = [
+        {
+            "title": html.unescape(title).strip().lstrip("[").strip(),
+            "url": url,
+            "posted_at": date,
+        }
+        for title, url, date in _LGU_MD_ROW.findall(body)
+    ]
+    if not rows:
+        raise RuntimeError("jina fallback parsed 0 rows")
+    rows.sort(key=lambda r: r["posted_at"], reverse=True)
+    return rows[:limit]
+
+
 def _collect_lgu(limit: int) -> List[Dict[str, str]]:
-    body = ""
-    errors: list[str] = []
+    # 1) 직접 fetch (한국 IP 등 정상 경로)
     for url in _LGU_LIST_URLS:
         try:
             body = _fetch(url)
-            break
-        except Exception as exc:  # noqa: BLE001 - 대체 URL 폴백
-            errors.append(f"{url} -> {exc}")
-    if not body:
-        raise RuntimeError("; ".join(errors))
-    rows = [
-        {
-            "title": _strip_tags(title),
-            "url": "https://www.lguplus.com" + html.unescape(href),
-            "posted_at": date,
-        }
-        for href, title, date in _LGU_ROW.findall(body)
-    ]
-    rows.sort(key=lambda r: r["posted_at"], reverse=True)
-    return rows[:limit]
+        except Exception as exc:  # noqa: BLE001 - 폴백 전환 판단용
+            logger.warning("LGU direct fetch failed (%s): %s", url, exc)
+            continue
+        rows = [
+            {
+                "title": _strip_tags(title),
+                "url": "https://www.lguplus.com" + html.unescape(href),
+                "posted_at": date,
+            }
+            for href, title, date in _LGU_ROW.findall(body)
+        ]
+        if rows:
+            rows.sort(key=lambda r: r["posted_at"], reverse=True)
+            return rows[:limit]
+        logger.warning("LGU direct fetch returned 0 rows: %s", url)
+    # 2) 폴백: r.jina.ai 렌더 프록시
+    logger.warning("LGU falling back to r.jina.ai proxy")
+    return _collect_lgu_via_jina(limit)
 
 
 _COLLECTORS = {
